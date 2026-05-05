@@ -1,0 +1,228 @@
+@extends('layouts.app')
+
+@section('title', 'Customer Management - Admin')
+
+@section('content')
+    <div class="glass py-3">
+        <div class="row">
+            <div class="col-12">
+                <div class="card glass">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0 fw-bold">
+                                    <i class="fas fa-user-tie me-2 text-accent"></i>
+                                    Customer Management
+                                </h4>
+                                <p class="mb-0 text-muted small">Manage all registered customers and their status</p>
+                            </div>
+                            <a href="{{ route('customers.create') }}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-plus me-2"></i>New Customer
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter -->
+                    <div class="card-body border-bottom">
+                        <form method="GET" class="row g-3">
+                            <div class="col-md-5">
+                                <input type="text" name="search" class="form-control form-control-sm"
+                                    placeholder="Search customers by name or company..." value="{{ request('search') }}">
+                            </div>
+                            <div class="col-md-3">
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="">All Status</option>
+                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
+                                    </option>
+                                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active
+                                    </option>
+                                    <option value="suspended" {{ request('status') == 'suspended' ? 'selected' : '' }}>
+                                        Suspended</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-outline-warning btn-sm w-100">
+                                    <i class="fas fa-search me-1"></i>Filter
+                                </button>
+                            </div>
+                            @if (request()->hasAny(['search', 'status']))
+                                <div class="col-md-2">
+                                    <a href="{{ route('customers.index') }}" class="btn btn-outline-secondary btn-sm w-100">
+                                        Clear
+                                    </a>
+                                </div>
+                            @endif
+                        </form>
+                    </div>
+
+                    <!-- Customers Table -->
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Company</th>
+                                        <th>Customer</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($customers as $index => $customer)
+                                        <tr data-customer-id="{{ $customer->id }}">
+                                            <td>
+                                                <div class="fw-bold text-warning">{{ $customers->firstItem() + $index }}</div>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold text-dark">{{ $customer->company }}</div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar avatar-sm bg-gradient-warning text-white rounded-circle me-3 d-flex align-items-center justify-content-center"
+                                                        style="width: 40px; height: 40px;">
+                                                        {{ strtoupper(substr($customer->user->name ?? '', 0, 1)) }}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold">{{ $customer->user->name ?? 'N/A' }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ $customer->user->email ?? 'N/A' }}</small>
+                                            </td>
+                                            <td>
+                                                <small>{{ $customer->phone ?? 'N/A' }}</small>
+                                            </td>
+                                            <td>
+                                                @php
+                                                    $statusConfig = [
+                                                        'active' => ['class' => 'success', 'icon' => 'check-circle', 'label' => 'Active'],
+                                                        'pending' => ['class' => 'warning', 'icon' => 'clock', 'label' => 'Pending'],
+                                                        'suspended' => ['class' => 'danger', 'icon' => 'ban', 'label' => 'Suspended'],
+                                                    ];
+                                                    $config = $statusConfig[$customer->status] ?? $statusConfig['pending'];
+                                                @endphp
+                                                <span class="badge bg-{{ $config['class'] }} px-3 py-2 rounded-pill">
+                                                    <i class="fas fa-{{ $config['icon'] }} me-1"></i>{{ $config['label'] }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="dropdown dropstart position-relative">
+                                                    <button
+                                                        class="btn btn-sm btn-outline-secondary dropdown-toggle p-2 rounded-circle border-0 shadow-sm hover-shadow"
+                                                        type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                                        title="Actions">
+                                                        <i class="fas fa-ellipsis-v text-muted"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu shadow-lg border-0 py-2"
+                                                        style="min-width: 160px; z-index: 1100;">
+                                                        <li>
+                                                            <a class="dropdown-item py-2"
+                                                                href="{{ route('customers.show', $customer) }}">
+                                                                <i class="fas fa-eye me-2 text-info"></i>View Profile
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item py-2"
+                                                                href="{{ route('customers.edit', $customer) }}">
+                                                                <i class="fas fa-edit me-2 text-warning"></i>Edit
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <hr class="dropdown-divider my-1 mx-2">
+                                                        </li>
+                                                        <li>
+                                                            <button class="dropdown-item py-2 text-danger w-100 text-start"
+                                                                onclick="deleteCustomer({{ $customer->id }})">
+                                                                <i class="fas fa-trash me-2"></i>Delete Customer
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center py-8">
+                                                <i class="fas fa-users-slash fa-3x text-muted mb-4 opacity-50"></i>
+                                                <h5 class="text-muted mb-3">No customers found</h5>
+                                                <p class="text-muted mb-4">Try adjusting search/filter or <a
+                                                        href="{{ route('customers.create') }}"
+                                                        class="text-decoration-none">create your first customer</a></p>
+                                                <a href="{{ route('customers.create') }}" class="btn btn-warning px-4 py-2">
+                                                    <i class="fas fa-plus me-2"></i>Create Customer
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <!-- Pagination -->
+                    @if ($customers->hasPages())
+                        <div class="card-footer bg-white border-0 py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="small text-muted">
+                                    Showing {{ $customers->firstItem() }} to {{ $customers->lastItem() }} of
+                                    {{ $customers->total() }} customers
+                                </div>
+                                {{ $customers->appends(request()->query())->links('pagination::bootstrap-5') }}
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // CSRF Token
+                const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                // Delete Customer AJAX
+                window.deleteCustomer = async function(customerId) {
+                    const result = await Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'This customer will be permanently deleted!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete it!'
+                    });
+
+                    if (!result.isConfirmed) return;
+
+                    try {
+                        const response = await fetch(`customers/${customerId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': CSRF_TOKEN,
+                                'Accept': 'application/json',
+                            }
+                        });
+
+                        if (response.ok) {
+                            document.querySelector(`tr[data-customer-id="${customerId}"]`)?.remove();
+                            Swal.fire('Deleted!', 'Customer has been deleted.', 'success');
+                            window.location.reload();
+                        } else {
+                            throw new Error('Delete failed');
+                        }
+                    } catch (error) {
+                        Swal.fire('Error!', 'Something went wrong.', 'error');
+                    }
+                }
+            });
+        </script>
+    @endpush
+@endsection
