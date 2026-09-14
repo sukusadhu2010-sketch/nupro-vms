@@ -8,14 +8,14 @@
             <!-- Customer Profile Card -->
             <div class="col-xl-8">
                 <div class="card shadow-lg border-0 rounded-4 h-100">
-                    <div class="card-header bg-gradient-warning text-white rounded-top-4 border-0">
+                    <div class="card-header bg-gradient-warning text-dark rounded-top-4 border-0">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h3 class="mb-0 fw-bold">
                                     <i class="fas fa-user-tie me-2"></i>
                                     Customer Profile
                                 </h3>
-                                <p class="mb-0 opacity-90">Detailed view of {{ $customer->company }}</p>
+                                <p class="mb-0 opacity-90">Detailed view of {{ $customer->name ?? $customer->user->name }}</p>
                             </div>
                             <div class="d-flex gap-2">
                                 <a href="{{ route('customers.edit', $customer) }}" class="btn btn-light btn-sm">
@@ -36,15 +36,15 @@
                                     <div class="col-auto">
                                         <div
                                             class="avatar avatar-xl bg-gradient-warning text-white rounded-circle d-flex align-items-center justify-content-center">
-                                            {{ strtoupper(substr($customer->company, 0, 1)) }}
+                                            {{ strtoupper(substr($customer->name ?? $customer->user->name ?? 'C', 0, 1)) }}
                                         </div>
                                     </div>
                                     <div class="col">
-                                        <h2 class="mb-1 fw-bold">{{ $customer->user->name }}</h2>
-                                        <p class="mb-2 text-muted fs-5">{{ $customer->user->email }}</p>
+                                        <h2 class="mb-1 fw-bold">{{ $customer->user?->name ?? $customer->name ?? 'N/A' }}</h2>
+                                        <p class="mb-2 text-muted fs-5">{{ $customer->user?->email ?? 'No email available' }}</p>
                                         @if ($customer->phone)
                                             <p class="mb-0">
-                                                <i class="fas fa-phone me-2 text-muted"></i>
+                                                <i class="fas fa-mobile-alt me-2 text-muted"></i>
                                                 {{ $customer->phone }}
                                             </p>
                                         @endif
@@ -57,7 +57,7 @@
                                 <div class="card border-0 shadow-sm">
                                     <div class="card-header bg-light">
                                         <h6 class="mb-0 fw-bold text-warning">
-                                            <i class="fas fa-building me-2"></i>Company Information
+                                            <i class="fas fa-id-card me-2"></i>Customer Information
                                         </h6>
                                     </div>
                                     <div class="card-body">
@@ -66,11 +66,11 @@
                                                 <div class="d-flex align-items-center mb-3">
                                                     <div class="bg-warning-subtle rounded-circle p-3 me-3 d-flex align-items-center justify-content-center"
                                                         style="width: 60px; height: 60px;">
-                                                        <i class="fas fa-building text-warning fs-5"></i>
+                                                        <i class="fas fa-user text-warning fs-5"></i>
                                                     </div>
                                                     <div>
-                                                        <h6 class="mb-1 fw-bold">{{ $customer->company }}</h6>
-                                                        <small class="text-muted">Company Name</small>
+                                                        <h6 class="mb-1 fw-bold">{{ $customer->name ?? $customer->user->name }}</h6>
+                                                        <small class="text-muted">Contact Name</small>
                                                     </div>
                                                 </div>
                                                 @if ($customer->address)
@@ -81,7 +81,19 @@
                                                         </div>
                                                         <div>
                                                             <h6 class="mb-1 fw-semibold">{{ $customer->address }}</h6>
-                                                            <small class="text-muted">Business Address</small>
+                                                            <small class="text-muted">Address</small>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                                @if ($customer->gst_no)
+                                                    <div class="d-flex align-items-start mt-3">
+                                                        <div class="bg-success-subtle rounded-circle p-2 me-3 d-flex align-items-center justify-content-center mt-1"
+                                                            style="width: 40px; height: 40px;">
+                                                            <i class="fas fa-id-card text-success"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h6 class="mb-1 fw-semibold">{{ $customer->gst_no }}</h6>
+                                                            <small class="text-muted">GST No</small>
                                                         </div>
                                                     </div>
                                                 @endif

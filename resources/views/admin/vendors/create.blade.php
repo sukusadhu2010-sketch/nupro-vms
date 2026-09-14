@@ -14,7 +14,7 @@
                                     <i class="fas fa-user-plus me-3"></i>
                                     Add New Vendor
                                 </h3>
-                                <p class="mb-0 opacity-75">Create a new vendor account and company profile</p>
+                                <p class="mb-0 opacity-75">Create a new vendor account and profile</p>
                             </div>
                             <div class="col-auto">
                                 <a href="{{ route('vendors.index') }}" class="btn btn-light btn-sm">
@@ -35,7 +35,7 @@
                                         <i class="fas fa-user me-2"></i>Personal Information
                                     </h6>
                                     <div class="mb-4">
-                                        <label class="form-label fw-semibold">Full Name <span
+                                        <label class="form-label fw-semibold">Contact Name <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" name="name"
                                             class="form-control form-control-lg @error('name') is-invalid @enderror"
@@ -57,10 +57,12 @@
                                     </div>
 
                                     <div class="mb-0">
-                                        <label class="form-label fw-semibold">Phone</label>
-                                        <input type="tel" name="phone"
+                                        <label class="form-label fw-semibold">Mobile Number</label>
+                                        <input type="text" name="phone" inputmode="numeric" maxlength="15"
                                             class="form-control @error('phone') is-invalid @enderror"
-                                            value="{{ old('phone') }}">
+                                            value="{{ old('phone') }}"
+                                            placeholder="Digits only, e.g. 9876543210"
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         @error('phone')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -70,28 +72,52 @@
                                 <!-- Company Info -->
                                 <div class="col-md-6">
                                     <h6 class="fw-bold text-uppercase text-success mb-3">
-                                        <i class="fas fa-building me-2"></i>Company Information
+                                        <i class="fas fa-building me-2"></i>Vendor Information
                                     </h6>
 
                                     <div class="mb-4">
-                                        <label class="form-label fw-semibold">Company Name <span
-                                                class="text-danger">*</span></label>
-                                        <input type="text" name="company"
-                                            class="form-control form-control-lg @error('company') is-invalid @enderror"
-                                            value="{{ old('company') }}" required>
-                                        @error('company')
+                                        <label class="form-label fw-semibold">Particulars</label>
+                                        <input type="text" name="particulars"
+                                            class="form-control form-control-lg @error('particulars') is-invalid @enderror"
+                                            value="{{ old('particulars') }}"
+                                            placeholder="Vendor particulars / nature of business">
+                                        @error('particulars')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
 
                                     <div class="mb-4">
-                                        <label class="form-label fw-semibold">Specialization <span
+                                        <label class="form-label fw-semibold">Vendor Type <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" name="specialization"
-                                            class="form-control form-control-lg @error('specialization') is-invalid @enderror"
-                                            value="{{ old('specialization') }}"
-                                            placeholder="e.g., IT Services, Construction, Manufacturing" required>
-                                        @error('specialization')
+                                        <div class="d-flex gap-4 pt-1">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="vendor_type"
+                                                    id="vendor_type_foundry" value="FOUNDRY"
+                                                    {{ old('vendor_type') === 'FOUNDRY' ? 'checked' : '' }} required>
+                                                <label class="form-check-label fw-semibold"
+                                                    for="vendor_type_foundry">FOUNDRY</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="vendor_type"
+                                                    id="vendor_type_sub_vendor" value="SUB VENDOR"
+                                                    {{ old('vendor_type') === 'SUB VENDOR' ? 'checked' : '' }} required>
+                                                <label class="form-check-label fw-semibold"
+                                                    for="vendor_type_sub_vendor">SUB VENDOR</label>
+                                            </div>
+                                        </div>
+                                        @error('vendor_type')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold">GST No <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" name="gst_no" maxlength="20"
+                                            class="form-control form-control-lg @error('gst_no') is-invalid @enderror"
+                                            value="{{ old('gst_no') }}"
+                                            placeholder="e.g. 22AAAAA0000A1Z5" required>
+                                        @error('gst_no')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>

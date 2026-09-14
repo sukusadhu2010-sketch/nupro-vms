@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'My Enquiries')
 
@@ -57,7 +57,7 @@
                                     </td>
                                     <td>
                                         <strong
-                                            class="text-success">${{ number_format($enquiry->total_amount, 2) }}</strong>
+                                            class="text-success">₹{{ number_format($enquiry->total_amount, 2) }}</strong>
                                     </td>
                                     <td>
                                         <span class="badge {{ $enquiry->status_badge }} px-3 py-2">

@@ -27,7 +27,16 @@
                         <form method="GET" class="row g-3">
                             <div class="col-md-4">
                                 <input type="text" name="search" class="form-control form-control-sm"
-                                    placeholder="Search by name or SKU..." value="{{ request('search') }}">
+                                    placeholder="Search by name, HSN code or category..." value="{{ request('search') }}">
+                            </div>
+                            <div class="col-md-3">
+                                <select name="category_id" class="form-select form-select-sm">
+                                    <option value="">All Categories</option>
+                                    @foreach ($categories as $id => $name)
+                                        <option value="{{ $id }}"
+                                            {{ request('category_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="col-md-3">
                                 <select name="status" class="form-select form-select-sm">
@@ -40,15 +49,6 @@
                                         {{ request('status') == 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
                                     <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>
                                         Inactive</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select name="vendor_id" class="form-select form-select-sm">
-                                    <option value="">All Vendors</option>
-                                    @foreach ($vendors as $id => $company)
-                                        <option value="{{ $id }}"
-                                            {{ request('vendor_id') == $id ? 'selected' : '' }}>{{ $company }}</option>
-                                    @endforeach
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -67,11 +67,9 @@
                                     <tr>
                                         <th>#</th>
                                         <th>Product</th>
-                                        <th>SKU</th>
-                                        <th>Vendor</th>
-                                        <th>Price</th>
+                                        <th>HSN Code</th>
+                                        <th>Category</th>
                                         <th>Stock</th>
-                                        <th>Unit</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -94,14 +92,20 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <code class="bg-light px-2 py-1 rounded">{{ $product->sku }}</code>
+                                                @if ($product->hsn_code)
+                                                    <code class="bg-light px-2 py-1 rounded">{{ $product->hsn_code }}</code>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
                                             </td>
                                             <td>
-                                                <div class="fw-semibold">{{ $product->vendor->company }}</div>
-                                            </td>
-                                            <td>
-                                                <div class="fw-bold text-success fs-6">
-                                                    ${{ number_format($product->price, 2) }}</div>
+                                                @if ($product->productCategory)
+                                                    <span class="badge bg-secondary px-2 py-1 rounded-pill">
+                                                        {{ $product->productCategory->name }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
                                             </td>
                                             <td>
                                                 @if ($product->stock_quantity > 0)
@@ -112,15 +116,6 @@
                                                     <span class="badge bg-danger px-3 py-2">
                                                         <i class="fas fa-times me-1"></i>Out of Stock
                                                     </span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if ($product->unit)
-                                                    <span class="badge bg-light text-dark px-2 py-1 rounded-pill">
-                                                        {{ $product->unit->symbol }}
-                                                    </span>
-                                                @else
-                                                    <span class="text-muted">—</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -193,7 +188,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="9" class="text-center py-8">
+                                            <td colspan="7" class="text-center py-8">
                                                 <i class="fas fa-box-open fa-3x text-muted mb-4 opacity-50"></i>
                                                 <h5 class="text-muted mb-3">No products found</h5>
                                                 <p class="text-muted mb-4">Try adjusting filters or add your first product

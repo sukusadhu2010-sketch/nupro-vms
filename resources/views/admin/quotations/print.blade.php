@@ -76,10 +76,22 @@
         </div>
 
         <!-- Header -->
+        @php($org = \App\Models\OrganizationSetting::current())
         <div class="quote-header row">
             <div class="col-6">
-                <div class="company-name">VMS Pro</div>
+                @if ($org->logo_path)
+                    <img src="{{ asset('storage/' . $org->logo_path) }}" alt="{{ $org->name }}" style="max-height: 80px; max-width: 240px;">
+                @endif
+                <div class="company-name">{{ $org->name }}</div>
                 <small class="text-muted">Vendor Management Solutions</small>
+                @if ($org->address_line1 || $org->city)
+                    <div class="small text-muted mt-1">
+                        {{ $org->address_line1 }}@if($org->address_line2), {{ $org->address_line2 }}@endif<br>
+                        {{ $org->city }}@if($org->state), {{ $org->state }}@endif @if($org->pincode)- {{ $org->pincode }}@endif<br>
+                        @if($org->contact_number)Ph: {{ $org->contact_number }}@endif
+                        @if($org->gstin) &nbsp;|&nbsp; GSTIN: {{ $org->gstin }}@endif
+                    </div>
+                @endif
             </div>
             <div class="col-6 text-end">
                 <div class="quote-title">QUOTATION</div>
@@ -93,7 +105,7 @@
                 <div class="mb-3">
                     <div class="info-label">Quote To</div>
                     <div class="info-value">
-                        {{ $quotation->enquiry->customer->company ?? $quotation->enquiry->customer->name }}</div>
+                        {{  $quotation->enquiry->customer->name }}</div>
                     <div class="text-muted small">{{ $quotation->enquiry->customer->user->email ?? '' }}</div>
                 </div>
             </div>
@@ -124,6 +136,18 @@
             </div>
         </div>
 
+          @if ($quotation->acknowledgement || $quotation->product_spec)
+            <div class="mt-4">
+                <div class="info-label mb-1">Acknowledgement &amp; Product Specification</div>
+                @if ($quotation->acknowledgement)
+                    <p class="small mb-1">{{ $quotation->acknowledgement }}</p>
+                @endif
+                @if ($quotation->product_spec)
+                    <p class="small mb-0"><strong>Product Specification / Type:</strong> {{ $quotation->product_spec }}</p>
+                @endif
+            </div>
+        @endif
+
         <!-- Items Table -->
         <table class="table table-bordered">
             <thead>
@@ -141,28 +165,100 @@
                         <td class="text-center">{{ $i + 1 }}</td>
                         <td>
                             <strong>{{ $item->product->name }}</strong>
-                            @if ($item->notes)
-                                <br><small class="text-muted">{{ $item->notes }}</small>
-                            @endif
+
                         </td>
                         <td class="text-center">{{ $item->quantity }}</td>
-                        <td class="text-end">${{ number_format($item->unit_price, 2) }}</td>
-                        <td class="text-end">${{ number_format($item->total_price, 2) }}</td>
+                        <td class="text-end">₹{{ number_format($item->unit_price, 2) }}</td>
+                        <td class="text-end">₹{{ number_format($item->total_price, 2) }}</td>
                     </tr>
+                    <tr><td colspan="5">
+                         @if ($item->notes)
+                                <br><small class="text-muted">{{ $item->notes }}</small>
+                            @endif
+                            <div class="mt-1 small">
+                                <strong>Description:</strong>
+                                <span><strong>MOC:</strong> {{ $item->moc }}</span> &nbsp;|&nbsp;
+                                <span><strong>MFG Spec:</strong> {{ $item->mfg_spec }}</span> &nbsp;|&nbsp;
+                                <span><strong>Trim:</strong> {{ $item->trim }}</span> &nbsp;|&nbsp;
+                                <span><strong>Operation:</strong> {{ $item->operation }}</span> &nbsp;|&nbsp;
+                                <span><strong>End Connection:</strong> {{ $item->end_connection }}</span> &nbsp;|&nbsp;
+                                <span><strong>Rating:</strong> {{ $item->rating }}</span> &nbsp;|&nbsp;
+                                <span><strong>Media:</strong> {{ $item->media }}</span>
+                                @if ($item->remarks)
+                                    <br><strong>Remarks:</strong> {{ $item->remarks }}
+                                @endif
+                            </div>
+                    </td></tr>
                 @endforeach
             </tbody>
             <tfoot>
+                @if (($quotation->tax_amount ?? 0) > 0)
+                    <tr>
+                        <td colspan="4" class="text-end">Tax
+                            @if ($quotation->tax_type === 'igst') (IGST @ {{ $quotation->igst }}%)
+                            @else (CGST @ {{ $quotation->cgst }}% + SGST @ {{ $quotation->sgst }}%)
+                            @endif</td>
+                        <td class="text-end">₹{{ number_format($quotation->tax_amount, 2) }}</td>
+                    </tr>
+                @endif
                 <tr class="total-row">
-                    <td colspan="4" class="text-end">Grand Total:</td>
-                    <td class="text-end h5">${{ number_format($quotation->total_amount, 2) }}</td>
+                    <td colspan="4" class="text-end">Subtotal (Quantity Amount):</td>
+                    <td class="text-end">₹{{ number_format($quotation->total_amount, 2) }}</td>
                 </tr>
+                <tr class="total-row">
+                    <td colspan="4" class="text-end h5">Grand Total:</td>
+                    <td class="text-end h5">₹{{ number_format($quotation->total_amount + ($quotation->tax_amount ?? 0), 2) }}</td>
+                </tr>
+                @if ($quotation->amount_in_words)
+                    <tr>
+                        <td colspan="5" class="fst-italic">
+                            <small><strong>Amount in Words:</strong> {{ $quotation->amount_in_words }}</small>
+                        </td>
+                    </tr>
+                @endif
             </tfoot>
         </table>
 
-        @if ($quotation->notes)
+      
+
+        @if ($quotation->delivery_terms || $quotation->warranty_terms || $quotation->payment_terms || $quotation->inspection_vendor_scope || $quotation->inspection_third_party_scope)
             <div class="mt-4">
-                <div class="info-label mb-1">Terms & Conditions</div>
-                <p class="small">{{ $quotation->notes }}</p>
+                <div class="info-label mb-1">Terms &amp; Conditions</div>
+                <table class="table table-sm table-borderless small mb-0">
+                    @if ($quotation->delivery_terms)
+                        <tr><td style="width:220px"><strong>Delivery Terms</strong></td><td>{{ $quotation->delivery_terms }}</td></tr>
+                    @endif
+                    @if ($quotation->warranty_terms)
+                        <tr><td><strong>Warranty Terms</strong></td><td>{{ $quotation->warranty_terms }}</td></tr>
+                    @endif
+                    @if ($quotation->payment_terms)
+                        <tr><td><strong>Payment Terms</strong></td><td>{!! nl2br(e($quotation->payment_terms)) !!}</td></tr>
+                    @endif
+                    @if ($quotation->inspection_vendor_scope)
+                        <tr><td><strong>Inspection — Vendor Scope</strong></td><td>{!! nl2br(e($quotation->inspection_vendor_scope)) !!}</td></tr>
+                    @endif
+                    @if ($quotation->inspection_third_party_scope)
+                        <tr><td><strong>Inspection — Third Party</strong></td><td>{!! nl2br(e($quotation->inspection_third_party_scope)) !!}</td></tr>
+                    @endif
+                </table>
+            </div>
+        @endif
+
+        @if ($quotation->notes || $quotation->closing_statement || $quotation->signatory_company || $quotation->signatory_designation)
+            <div class="mt-4">
+                <div class="info-label mb-1">Notes &amp; Signatory</div>
+                @if ($quotation->notes)
+                    <div class="small mb-2">{!! \App\Support\HtmlSanitizer::clean($quotation->notes) !!}</div>
+                @endif
+                @if ($quotation->closing_statement)
+                    <p class="small fst-italic mb-2">{{ $quotation->closing_statement }}</p>
+                @endif
+                @if ($quotation->signatory_company || $quotation->signatory_designation)
+                    <div class="border-top pt-2 small">
+                        <strong>{{ $quotation->signatory_company }}</strong>
+                        @if ($quotation->signatory_designation)<div>{{ $quotation->signatory_designation }}</div>@endif
+                    </div>
+                @endif
             </div>
         @endif
 

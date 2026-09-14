@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Enquiry Management')
 
@@ -79,8 +79,11 @@
                                             </td>
                                             <td>
                                                 <div class="fw-bold">
-                                                    {{ $enquiry->customer->company ?? $enquiry->customer->name }}</div>
-                                                <small class="text-muted">{{ $enquiry->customer->user->email }}</small>
+                                                    {{ $enquiry->customer->company ?? $enquiry->customer->name ?? 'N/A' }}</div>
+                                                <small class="text-muted">{{ $enquiry->customer?->user?->email ?? 'No email available' }}</small>
+                                                @if ($enquiry->enquiry_number)
+                                                    <br><small><code>{{ $enquiry->enquiry_number }}</code></small>
+                                                @endif
                                             </td>
                                             <td>
                                                 <div class="fw-bold">{{ $enquiry->items_count }}
@@ -91,7 +94,7 @@
                                                 @endif
                                             </td>
                                             <td><strong
-                                                    class="text-success">${{ number_format($enquiry->total_amount, 2) }}</strong>
+                                                    class="text-success">₹{{ number_format($enquiry->total_amount, 2) }}</strong>
                                             </td>
                                             <td>
                                                 <span class="badge {{ $enquiry->priority_badge }} px-3 py-2 fs-6 me-1">

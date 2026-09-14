@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'New Enquiry')
 
@@ -82,7 +82,7 @@
                             </div>
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-bold h5">Total Amount:</span>
-                                <span class="fw-bold h4 text-success" id="grandTotal">$0.00</span>
+                                <span class="fw-bold h4 text-success" id="grandTotal">₹0.00</span>
                             </div>
                         </div>
                     </div>
@@ -155,7 +155,7 @@
                     container.querySelector('.empty-state').style.display = 'block';
                     productCount.textContent = '0';
                     totalItems.textContent = '0';
-                    grandTotal.textContent = '$0.00';
+                    grandTotal.textContent = '₹0.00';
                     submitBtn.disabled = true;
                     return;
                 }

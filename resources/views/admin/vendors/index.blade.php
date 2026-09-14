@@ -27,9 +27,19 @@
                         <form method="GET" class="row g-3">
                             <div class="col-md-5">
                                 <input type="text" name="search" class="form-control"
-                                    placeholder="Search vendors by name or company..." value="{{ request('search') }}">
+                                    placeholder="Search vendors by contact name, particulars or GST No..." value="{{ request('search') }}">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
+                                <select name="vendor_type" class="form-select">
+                                    <option value="">All Types</option>
+                                    <option value="FOUNDRY" {{ request('vendor_type') == 'FOUNDRY' ? 'selected' : '' }}>
+                                        FOUNDRY</option>
+                                    <option value="SUB VENDOR"
+                                        {{ request('vendor_type') == 'SUB VENDOR' ? 'selected' : '' }}>SUB VENDOR
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
                                 <select name="status" class="form-select">
                                     <option value="">All Status</option>
                                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
@@ -45,7 +55,7 @@
                                     <i class="fas fa-search me-2"></i>Filter
                                 </button>
                             </div>
-                            @if (request()->hasAny(['search', 'status']))
+                            @if (request()->hasAny(['search', 'status', 'vendor_type']))
                                 <div class="col-md-2">
                                     <a href="{{ route('vendors.index') }}" class="btn btn-outline-secondary w-100">
                                         Clear
@@ -62,11 +72,12 @@
                                 <thead class="table-light sticky-top">
                                     <tr>
                                         <th>#</th>
-                                        <th>Company</th>
-                                        <th>Vendor</th>
+                                        <th>Contact Name</th>
+                                        <!-- <th>Particulars</th> -->
                                         <th>Email</th>
-                                        <th>Phone</th>
-                                        <th>Specialization</th>
+                                        <th>Mobile Number</th>
+                                        <th>GST No</th>
+                                        <th>Vendor Type</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -77,30 +88,28 @@
                                             <td>
                                                 <div class="fw-bold text-primary">{{ $vendors->firstItem() + $index }}</div>
                                             </td>
+                                            
                                             <td>
-                                                <div class="fw-semibold text-dark">{{ $vendor->company }}</div>
+                                                <div class="fw-semibold text-dark">{{ $vendor->particulars ?? 'N/A' }}</div>
                                             </td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="avatar avatar-sm bg-gradient-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center"
-                                                        style="width: 40px; height: 40px;">
-                                                        {{ strtoupper(substr($vendor->user->name, 0, 1)) }}
-                                                    </div>
-                                                    <div>
-                                                        <div class="fw-semibold">{{ $vendor->user->name }}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <small class="text-muted">{{ $vendor->user->email }}</small>
+                                           <td>
+                                                <div class="fw-semibold text-dark">{{ $vendor->email ?? 'N/A' }}</div>
                                             </td>
                                             <td>
                                                 <small>{{ $vendor->phone ?? 'N/A' }}</small>
                                             </td>
                                             <td>
-                                                <span class="badge bg-light text-dark px-2 py-1 rounded-pill">
-                                                    {{ Str::title($vendor->specialization) }}
-                                                </span>
+                                                <small>{{ $vendor->gst_no ?? 'N/A' }}</small>
+                                            </td>
+                                            <td>
+                                                @if ($vendor->vendor_type)
+                                                    <span
+                                                        class="badge bg-{{ $vendor->vendor_type === 'FOUNDRY' ? 'info' : 'secondary' }} px-3 py-2 rounded-pill">
+                                                        {{ $vendor->vendor_type }}
+                                                    </span>
+                                                @else
+                                                    <small class="text-muted">N/A</small>
+                                                @endif
                                             </td>
                                             <td>
                                                 @php
@@ -183,7 +192,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="8" class="text-center py-8">
+                                            <td colspan="7" class="text-center py-8">
                                                 <i class="fas fa-users-slash fa-3x text-muted mb-4 opacity-50"></i>
                                                 <h5 class="text-muted mb-3">No vendors found</h5>
                                                 <p class="text-muted mb-4">Try adjusting search/filter or <a

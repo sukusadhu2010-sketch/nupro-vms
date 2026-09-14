@@ -22,7 +22,9 @@ class CustomerController extends Controller
 
         if ($request->filled('search')) {
             $query->where('name', 'like', '%'.$request->search.'%')
-                  ->orWhere('company', 'like', '%'.$request->search.'%');
+                  ->orWhere('email', 'like', '%'.$request->search.'%')
+                  ->orWhere('phone', 'like', '%'.$request->search.'%')
+                  ->orWhere('gst_no', 'like', '%'.$request->search.'%');
         }
 
         if ($request->filled('status')) {
@@ -43,18 +45,36 @@ class CustomerController extends Controller
     }
 
     /**
+     * Shared validation rules for customer store/update.
+     * - name        = Contact Name (primary identifier, required)
+     * - phone       = Mobile Number (digits only: no negatives, decimals,
+     *                 spaces or non-numeric characters)
+     * - gst_no      = GST No (mandatory)
+     * - company     = REMOVED from the customer management form entirely
+     */
+    private function validateCustomer(Request $request, ?Customer $customer = null): array
+    {
+        $uniqueEmail = $customer
+            ? Rule::unique('users')->ignore($customer->user_id)
+            : 'unique:users,email';
+
+        return $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'email', $uniqueEmail],
+            // Digits only — rejects signs, dots, spaces, letters, symbols
+            'phone' => ['nullable', 'max:15', 'regex:/^[0-9]+$/'],
+            'gst_no' => 'required|string|max:20',
+            'address' => 'nullable|string',
+            'status' => 'required|in:pending,active,suspended',
+        ]);
+    }
+
+    /**
      * Store new customer.
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'company' => 'required|string|max:255',
-            'address' => 'nullable|string',
-            'status' => 'required|in:pending,active,suspended',
-        ]);
+        $validated = $this->validateCustomer($request);
 
         // Create user
         $user = User::create([
@@ -71,7 +91,7 @@ class CustomerController extends Controller
 
         // Create customer
         $customer = $user->customer()->create($request->only([
-            'name', 'email', 'phone', 'company', 'address', 'status'
+            'name', 'email', 'phone', 'gst_no', 'address', 'status'
         ]));
 
         return redirect()->route('customers.index')
@@ -101,14 +121,7 @@ class CustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'email', Rule::unique('users')->ignore($customer->user_id)],
-            'phone' => 'nullable|string|max:20',
-            'company' => 'required|string|max:255',
-            'address' => 'nullable|string',
-            'status' => 'required|in:pending,active,suspended',
-        ]);
+        $this->validateCustomer($request, $customer);
 
         $customer->user->update([
             'name' => $request->name,
@@ -116,7 +129,7 @@ class CustomerController extends Controller
         ]);
 
         $customer->update($request->only([
-            'phone', 'company', 'address', 'status'
+            'name', 'phone', 'gst_no', 'address', 'status'
         ]));
 
         return redirect()->route('customers.index')

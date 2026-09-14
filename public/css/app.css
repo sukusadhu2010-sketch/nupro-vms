@@ -1,18 +1,23 @@
 /* VMS Pro - Professional Dark Admin Theme */
 
 
-/* CSS Variables - Dark First */
+/* CSS Variables - Light Mode First (WCAG AA compliant pairings) */
 :root {
 
-    /* Core Dark Palette */
-    --bg-base: #1a1c23;
-    --bg-surface: #24262d;
-    --bg-card: rgba(36, 38, 45, 0.8);
-    --text-primary: #e5e7eb;
-    --text-secondary: #9ca3af;
-    --text-muted: #6b7280;
-    --border: #2d2f39;
-    --border-light: rgba(255, 255, 255, 0.1);
+    /* Core Light Palette */
+    --bg-base: #f4f6f9;
+    --bg-surface: #ffffff;
+    --bg-card: #ffffff;
+    --text-primary: #1f2933;
+    --text-secondary: #37404a;
+    --text-muted: #5b6470;
+    --border: #d7dce3;
+    --border-light: rgba(0, 0, 0, 0.08);
+
+    /* Dedicated text-role variables (Light Mode) */
+    --heading-color: #111827;  /* near-black: 16.8:1 on --bg-base */
+    --body-color: #1f2933;     /* body text: 14.3:1 on --bg-base */
+    --label-color: #37404a;    /* labels: 10.6:1 on --bg-base */
 
     /* Jewel Tones */
     --primary: #10b981;
@@ -28,14 +33,14 @@
     --info: #3b82f6;
 
     /* Gradients */
-    --gradient-bg: linear-gradient(135deg, #1a1c23 0%, #24262d 100%);
+    --gradient-bg: linear-gradient(135deg, #10b981 0%, #059669 100%);
     --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     --gradient-secondary: linear-gradient(135deg, var(--secondary) 0%, #4f46e5 100%);
 
     /* Shadows & Radius */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.12);
     --radius-sm: 0.5rem;
     --radius-md: 0.75rem;
     --radius-lg: 1rem;
@@ -56,18 +61,152 @@ body {
 
 
 
-/* Dark Mode - Force & Enhance */
+/* Dark Mode - Full Palette Override */
 .dark {
     --bg-base: #1a1c23;
+    --bg-surface: #24262d;
+    --bg-card: rgba(36, 38, 45, 0.9);
+    --text-primary: #e5e7eb;
+    --text-secondary: #c3c8d4;
+    --text-muted: #a3adbd;
+    --border: #3a3d49;
+    --border-light: rgba(255, 255, 255, 0.12);
+    /* Dedicated text-role variables (Dark Mode) */
+    --heading-color: #f3f4f6;  /* near-white: 15.5:1 on --bg-base */
+    --body-color: #e5e7eb;     /* body text: 13.2:1 on --bg-base */
+    --label-color: #c3c8d4;    /* labels: 9.8:1 on --bg-base */
     background: var(--bg-base) !important;
     color: var(--text-primary) !important;
 
 }
 
-.dark main {
+/* Global readability rules - apply to BOTH modes via variables */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    color: var(--heading-color);
+}
+
+body p, body span, body li, body td, body small,
+.text-body, .card-body, .card-body p {
+    color: var(--body-color);
+}
+
+body label,
+.form-label {
+    color: var(--label-color);
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.card-header.bg-light h6,
+.card-header.bg-light .h6 {
+    color: var(--text-primary) !important;
+}
+
+.card-header.bg-light {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-primary);
+}
+
+.card-header.bg-white {
+    background-color: var(--bg-surface) !important;
+}
+
+code {
+    color: var(--info);
+    background-color: rgba(59, 130, 246, 0.1);
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+}
+
+/* Keep colored utility text accessible in both modes */
+.dark .text-dark { color: var(--text-primary) !important; }
+.dark .text-info { color: #60a5fa !important; }
+.dark .text-primary { color: #34d399 !important; }
+.dark .text-success { color: #34d399 !important; }
+.dark .text-warning { color: #fbbf24 !important; }
+.dark .text-danger { color: #f87171 !important; }
+.dark .text-secondary { color: #c3c8d4 !important; }
+.dark .bg-light { background-color: var(--bg-surface) !important; }
+.dark .bg-light.text-dark { color: var(--text-primary) !important; }
+.dark .bg-info-subtle { background-color: rgba(59, 130, 246, 0.25) !important; }
+.dark .bg-success-subtle { background-color: rgba(52, 211, 153, 0.25) !important; }
+
+/* Fix light-mode navbar/sidebar text so it stays visible on the green gradient */
+.navbar .nav-link,
+.navbar .navbar-brand,
+.navbar .dropdown-toggle,
+.navbar .btn-link {
+    color: #ffffff !important;
+}
+
+/* Dark navbar when in dark mode */
+.dark .navbar {
+    background: var(--gradient-bg) !important;
+}
+
+/* Sidebar in light mode */
+.sidebar {
+    background: var(--bg-surface) !important;
+    border-right: 1px solid var(--border) !important;
+}
+
+.sidebar .nav-link {
+    color: var(--text-primary);
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--primary) !important;
+}
+
+.sidebar .nav-link.active {
+    background: var(--gradient-primary);
+    color: white !important;
+}
+
+.sidebar .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Cards in light mode */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+}
+
+.card-header {
+    color: var(--text-primary);
+}
+
+/* Dropdowns in light mode */
+.dropdown-menu {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+}
+
+.dropdown-item:hover {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--primary);
+}
+
+/* Light-mode main content area matches the page background */
+main {
     background: var(--bg-base);
     padding: 0.75rem;
     min-height: calc(100vh - 65px);
+}
+
+.dark main {
+    background: var(--bg-base);
 
 }
 
@@ -132,11 +271,30 @@ body {
 
 }
 
-.dark .card-header {
-    background: transparent !important;
+/* Only restyle card headers WITHOUT an explicit bg/gradient class, so
+   bg-gradient-primary / bg-light headers keep their own accessible pairing */
+.dark .card-header:not([class*="bg-"]):not([class*="gradient"]) {
+    background: var(--bg-surface) !important;
     border-bottom: 1px solid var(--border) !important;
-    color: var(--text-primary);
+    color: var(--heading-color);
 
+}
+
+/* Gradient headers: white text on emerald/indigo passes AA; on amber use dark text */
+.dark .card-header.bg-gradient-primary,
+.dark .card-header.bg-gradient-info,
+.dark .card-header.bg-gradient-success,
+.dark .card-header.bg-primary,
+.dark .card-header.bg-info,
+.dark .card-header.bg-success {
+    color: #ffffff !important;
+}
+
+.dark .card-header.bg-gradient-warning,
+.dark .card-header.bg-warning,
+.dark .card-header.bg-light,
+.dark .card-header.bg-white {
+    color: var(--heading-color) !important;
 }
 
 
@@ -183,17 +341,22 @@ body {
 }
 
 .thumb-tiles .card .card-body {
-    color: white;
+    color: var(--text-primary);
 }
 
 .thumb-tiles .card .card-body .text-muted {
-    color: white !important;
+    color: var(--text-muted) !important;
+}
+
+/* Dark-mode-specific accent surfaces */
+.dark .thumb-tiles .card .card-body {
+    color: var(--text-primary);
 }
 
 /* Forms - Compact */
 .dark .form-control,
 .dark .form-select {
-    background: #c1c6d5 !important;
+    background: var(--bg-surface) !important;
     border: 1px solid var(--border) !important;
     color: var(--text-primary) !important;
     padding: 0.5rem 0.75rem;
@@ -239,12 +402,26 @@ body {
 
 }
 
-.dark .badge {
-    color: var(--text-primary) !important;
-    font-weight: 500;
-    padding: 0.375em 0.75em;
-
+/* Badges: keep Bootstrap's own text color per variant (bg-success = white text,
+   bg-warning = dark text) for WCAG contrast — do not force one color globally */
+.dark .badge.bg-secondary,
+.dark .badge.bg-light {
+    color: #1f2933 !important;
 }
+
+.dark .badge.bg-success,
+.dark .badge.bg-danger {
+    color: #ffffff !important;
+}
+
+/* Outline buttons on dark cards */
+.dark .btn-outline-info { color: #60a5fa; border-color: #60a5fa; }
+.dark .btn-outline-info:hover { color: #fff; }
+.dark .btn-outline-success { color: #34d399; border-color: #34d399; }
+.dark .btn-outline-success:hover { color: #fff; }
+.dark .btn-outline-danger { color: #f87171; border-color: #f87171; }
+.dark .btn-outline-danger:hover { color: #fff; }
+.dark .btn-light { color: #1f2933; }
 
 
 
@@ -288,6 +465,35 @@ body {
 }
 
 
+
+/* Dark gradient headers use dark text for contrast (white on amber is only ~2.2:1) */
+.dark .card-header.bg-gradient-warning.text-dark,
+.dark .card-header.bg-warning.text-dark {
+    color: #1f2933 !important;
+}
+
+/* Tabs: ensure inactive tab labels are readable in dark mode */
+.dark .nav-tabs .nav-link {
+    color: var(--label-color);
+}
+
+.dark .nav-tabs .nav-link.active {
+    color: var(--heading-color);
+    background: var(--bg-surface);
+    border-bottom-color: var(--bg-surface);
+}
+
+/* Modal & alert readability in dark mode */
+.dark .modal-content {
+    background: var(--bg-surface);
+    color: var(--body-color);
+}
+
+.dark .alert-secondary {
+    background: var(--bg-surface);
+    color: var(--body-color);
+    border-color: var(--border);
+}
 
 /* Pagination */
 .dark .pagination .page-link {

@@ -20,8 +20,16 @@ class VendorController extends Controller
         $query = Vendor::with('user')->orderBy('created_at', 'desc');
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%'.$request->search.'%')
-                  ->orWhere('company', 'like', '%'.$request->search.'%');
+            $query->where(function ($q) use ($request) {
+                // "Contact Name" is the primary identifier for the vendor
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('particulars', 'like', '%' . $request->search . '%')
+                  ->orWhere('gst_no', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('vendor_type')) {
+            $query->where('vendor_type', $request->vendor_type);
         }
 
         if ($request->filled('status')) {
@@ -47,13 +55,25 @@ class VendorController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            // "Contact Name" — primary identifier for the vendor
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'company' => 'required|string|max:255',
-            'specialization' => 'required|string|max:255',
+            // "Mobile Number" — digits only, no signs/decimals/spaces/special chars
+            'phone' => ['nullable', 'digits_between:10,15', 'regex:/^[0-9]+$/'],
+            'particulars' => 'nullable|string|max:255',
+            // "Vendor Type" — mandatory, FOUNDRY or SUB VENDOR
+            'vendor_type' => ['required', 'string', Rule::in(Vendor::VENDOR_TYPES)],
+            // "GST No" — mandatory, validated before saving
+            'gst_no' => ['required', 'string', 'max:20', 'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][0-9A-Z]Z[0-9A-Z]$/'],
             'address' => 'nullable|string',
             'status' => 'required|in:pending,active,suspended',
+        ], [
+            'phone.regex' => 'Mobile Number must contain digits only (no spaces, symbols, decimals or negative values).',
+            'phone.digits_between' => 'Mobile Number must be 10 to 15 digits.',
+            'vendor_type.required' => 'Vendor Type is mandatory — please select FOUNDRY or SUB VENDOR.',
+            'vendor_type.in' => 'Vendor Type must be either FOUNDRY or SUB VENDOR.',
+            'gst_no.required' => 'GST No is mandatory.',
+            'gst_no.regex' => 'GST No must be a valid GSTIN (e.g. 22AAAAA0000A1Z5).',
         ]);
 
         // Create user
@@ -65,7 +85,7 @@ class VendorController extends Controller
 
         // Create vendor
         $vendor = $user->vendor()->create($request->only([
-           'name','email', 'phone', 'company', 'specialization', 'address', 'status'
+            'name', 'email', 'phone', 'particulars', 'vendor_type', 'address', 'status', 'gst_no'
         ]));
 
         return redirect()->route('vendors.index')
@@ -94,13 +114,25 @@ class VendorController extends Controller
     public function update(Request $request, Vendor $vendor)
     {
         $request->validate([
+            // "Contact Name" — primary identifier for the vendor
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($vendor->user_id)],
-            'phone' => 'nullable|string|max:20',
-            'company' => 'required|string|max:255',
-            'specialization' => 'required|string|max:255',
+            // "Mobile Number" — digits only, no signs/decimals/spaces/special chars
+            'phone' => ['nullable', 'digits_between:10,15', 'regex:/^[0-9]+$/'],
+            'particulars' => 'nullable|string|max:255',
+            // "Vendor Type" — mandatory, FOUNDRY or SUB VENDOR
+            'vendor_type' => ['required', 'string', Rule::in(Vendor::VENDOR_TYPES)],
+            // "GST No" — mandatory, validated before saving
+            'gst_no' => ['required', 'string', 'max:20', 'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][0-9A-Z]Z[0-9A-Z]$/'],
             'address' => 'nullable|string',
             'status' => 'required|in:pending,active,suspended',
+        ], [
+            'phone.regex' => 'Mobile Number must contain digits only (no spaces, symbols, decimals or negative values).',
+            'phone.digits_between' => 'Mobile Number must be 10 to 15 digits.',
+            'vendor_type.required' => 'Vendor Type is mandatory — please select FOUNDRY or SUB VENDOR.',
+            'vendor_type.in' => 'Vendor Type must be either FOUNDRY or SUB VENDOR.',
+            'gst_no.required' => 'GST No is mandatory.',
+            'gst_no.regex' => 'GST No must be a valid GSTIN (e.g. 22AAAAA0000A1Z5).',
         ]);
 
         $vendor->user->update([
@@ -109,7 +141,7 @@ class VendorController extends Controller
         ]);
 
         $vendor->update($request->only([
-            'phone', 'company', 'specialization', 'address', 'status'
+            'phone', 'particulars', 'vendor_type', 'address', 'status', 'gst_no'
         ]));
 
         return redirect()->route('vendors.index')
@@ -123,7 +155,7 @@ class VendorController extends Controller
     {
         try {
             //code...
-       
+
         $newStatus = $vendor->status === 'active' ? 'suspended' : 'active';
         $vendor->update(['status' => $newStatus]);
         if($vendor->update(['status' => $newStatus])){
@@ -150,7 +182,7 @@ class VendorController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => false,'message' => 'Failed to delete vendor.']);
         }
-      
+
         // return redirect()->route('vendors.index')
         //     ->with('success', 'Vendor deleted successfully!');
     }

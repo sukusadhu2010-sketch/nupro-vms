@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Quotation Management')
 
@@ -45,12 +45,12 @@
                                         </td>
                                         <td>
                                             <ul class="mb-0 ps-3">
-                                                <li>Laptop Dell XPS ($1,200)</li>
-                                                <li>Monitor LG 27" ($450)</li>
-                                                <li>Mouse Wireless ($50)</li>
+                                                <li>Laptop Dell XPS (₹1,200)</li>
+                                                <li>Monitor LG 27" (₹450)</li>
+                                                <li>Mouse Wireless (₹50)</li>
                                             </ul>
                                         </td>
-                                        <td><strong class="text-success">$1,700</strong></td>
+                                        <td><strong class="text-success">₹1,700</strong></td>
                                         <td><span class="badge bg-success px-3 py-2">Approved</span></td>
                                         <td>2024-02-10</td>
                                         <td>
@@ -75,12 +75,12 @@
                                         </td>
                                         <td>
                                             <ul class="mb-0 ps-3">
-                                                <li>Office Chair ($350)</li>
-                                                <li>Desk ($650)</li>
-                                                <li>Lamp ($100)</li>
+                                                <li>Office Chair (₹350)</li>
+                                                <li>Desk (₹650)</li>
+                                                <li>Lamp (₹100)</li>
                                             </ul>
                                         </td>
-                                        <td><strong class="text-success">$1,100</strong></td>
+                                        <td><strong class="text-success">₹1,100</strong></td>
                                         <td><span class="badge bg-warning px-3 py-2">Pending</span></td>
                                         <td>2024-02-05</td>
                                         <td>

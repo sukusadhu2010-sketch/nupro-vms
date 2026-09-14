@@ -12,11 +12,13 @@ class Product extends Model
     protected $fillable = [
         'name',
         'sku',
+        'hsn_code',
         'description',
         'price',
         'stock_quantity',
         'unit_id',
         'vendor_id',
+        'product_category_id',
         'status',
         'category',
         'image'
@@ -25,6 +27,19 @@ class Product extends Model
     protected $casts = [
         'price' => 'decimal:2',
     ];
+
+    public function productCategory()
+    {
+        return $this->belongsTo(ProductCategory::class);
+    }
+
+    /**
+     * Human-friendly Product Code (auto-generated from Category + Name).
+     */
+    public function getProductCodeAttribute()
+    {
+        return $this->sku;
+    }
 
     public function vendor()
     {
@@ -49,7 +64,7 @@ class Product extends Model
             'draft' => 'bg-secondary',
             'inactive' => 'bg-danger'
         ];
-        
+
         return $config[$this->status] ?? 'bg-secondary';
     }
 }

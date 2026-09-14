@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Sales Orders')
 
@@ -45,12 +45,12 @@
                                         </td>
                                         <td>
                                             <ul class="mb-0 ps-3">
-                                                <li>Dell XPS Laptop ($1,200)</li>
-                                                <li>LG 27" Monitor ($450)</li>
-                                                <li>Wireless Mouse ($50)</li>
+                                                <li>Dell XPS Laptop (₹1,200)</li>
+                                                <li>LG 27" Monitor (₹450)</li>
+                                                <li>Wireless Mouse (₹50)</li>
                                             </ul>
                                         </td>
-                                        <td><strong class="text-success">$1,700</strong></td>
+                                        <td><strong class="text-success">₹1,700</strong></td>
                                         <td><span class="badge bg-info px-3 py-2">Shipped</span></td>
                                         <td>2024-01-20</td>
                                         <td>
@@ -75,12 +75,12 @@
                                         </td>
                                         <td>
                                             <ul class="mb-0 ps-3">
-                                                <li>Office Chair ($350)</li>
-                                                <li>Conference Table ($1,200)</li>
-                                                <li>Projector ($800)</li>
+                                                <li>Office Chair (₹350)</li>
+                                                <li>Conference Table (₹1,200)</li>
+                                                <li>Projector (₹800)</li>
                                             </ul>
                                         </td>
-                                        <td><strong class="text-success">$2,350</strong></td>
+                                        <td><strong class="text-success">₹2,350</strong></td>
                                         <td><span class="badge bg-success px-3 py-2">Delivered</span></td>
                                         <td>2024-01-19</td>
                                         <td>

@@ -42,7 +42,7 @@
                             <div class="col-md-6">
                                 <strong>Enquiry #{{ $quotation->enquiry->id }}</strong><br>
                                 <small
-                                    class="">{{ $quotation->enquiry->customer->company ?? $quotation->enquiry->customer->name }}</small>
+                                    class="">{{  $quotation->enquiry->customer->name }}</small>
                             </div>
                             <div class="col-md-6 text-end">
                                 <a href="{{ route('enquiries.show', $quotation->enquiry) }}"
@@ -81,40 +81,149 @@
                                                 <strong>{{ $item->product->name }}</strong>
                                                 <br><small class="">SKU: {{ $item->product->sku }}</small>
                                                 <br><small class="">Vendor:
-                                                    {{ $item->product->vendor->company }}</small>
+                                                    {{ $item->product->vendor?->name }}</small>
                                             </td>
                                             <td class="text-center fw-bold">{{ $item->quantity }}</td>
-                                            <td class="text-end">${{ number_format($item->unit_price, 2) }}</td>
+                                            <td class="text-end">₹{{ number_format($item->unit_price, 2) }}</td>
                                             <td class="text-end fw-bold text-success">
-                                                ${{ number_format($item->total_price, 2) }}</td>
+                                                ₹{{ number_format($item->total_price, 2) }}</td>
                                             <td>
                                                 @if ($item->notes)
                                                     <small class="">{{ $item->notes }}</small>
                                                 @endif
                                             </td>
                                         </tr>
+                                        <tr><td colspan="6">
+                                            <div class="col-12 mt-2">
+                                            <label class="form-label fw-bold small mb-1">LC / Credit / Advance / PIC / PDC / Proforma Invoice</label>
+                                            <div class="d-flex flex-wrap gap-3">
+                                                @foreach (['LC' => 'LC', 'Credit' => 'Credit', 'Advance' => 'Advance', 'PIC' => 'PIC', 'PDC' => 'PDC', 'Proforma Invoice' => 'Proforma Invoice'] as $key => $label)
+                                                    <div class="form-check">
+                                                        <input class="form-check-input pay-method" type="checkbox"
+                                                            name="items[{{ $i }}][payment_methods][]" value="{{ $key }}"
+                                                            id="pay_{{ $i }}_{{ $loop->index }}"
+                                                            {{ in_array($key, $item->payment_methods ?? []) ? 'checked' : '' }}>
+                                                        <label class="form-check-label small" for="pay_{{ $i }}_{{ $loop->index }}">{{ $label }}</label>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label fw-bold small mb-1">Description</label>
+                                            <div class="row g-2">
+                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">MOC</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][moc]" value="{{ $item->moc ?? '' }}" readonly></div>
+                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">MFG Spec</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][mfg_spec]" value="{{ $item->mfg_spec ?? '' }}" readonly></div>
+                                                <div class="col-md-2"><label class="form-label fw-bold small mb-1">Trim</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][trim]" value="{{ $item->trim ?? '' }}" readonly></div>
+                                                <div class="col-md-2"><label class="form-label fw-bold small mb-1">Operation</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][operation]" value="{{ $item->operation ?? '' }}" readonly></div>
+                                                <div class="col-md-2"><label class="form-label fw-bold small mb-1">End Connection</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][end_connection]" value="{{ $item->end_connection ?? '' }}" readonly></div>
+                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">Rating</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][rating]" value="{{ $item->rating ?? '' }}" readonly></div>
+                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">Media</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][media]" value="{{ $item->media ?? '' }}" readonly></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label fw-bold small">Remarks</label>
+                                            <textarea class="form-control" name="items[{{ $i }}][remarks]" rows="2" placeholder="Remarks">{{ $item->remarks ?? $item->notes }}</textarea>
+                                        </div>
+                                        </td></tr>
                                     @endforeach
                                 </tbody>
                                 <tfoot class="table-group-divider">
+                                    <tr>
+                                        <td colspan="4" class="text-end fw-bold">Subtotal (Quantity Amount):</td>
+                                        <td class="text-end fw-bold">
+                                            ₹{{ number_format($quotation->total_amount, 2) }}</td>
+                                        <td></td>
+                                    </tr>
+                                    @if (($quotation->tax_amount ?? 0) > 0)
+                                        <tr>
+                                            <td colspan="4" class="text-end">Tax
+                                                @if ($quotation->tax_type === 'igst') (IGST @ {{ $quotation->igst }}%)
+                                                @else (CGST @ {{ $quotation->cgst }}% + SGST @ {{ $quotation->sgst }}%)
+                                                @endif</td>
+                                            <td class="text-end">₹{{ number_format($quotation->tax_amount, 2) }}</td>
+                                            <td></td>
+                                        </tr>
+                                    @endif
                                     <tr class="table-active">
                                         <td colspan="4" class="text-end h5 fw-bold">Grand Total:</td>
                                         <td class="text-end h4 fw-bold text-success">
-                                            ${{ number_format($quotation->total_amount, 2) }}</td>
+                                            ₹{{ number_format($quotation->total_amount + ($quotation->tax_amount ?? 0), 2) }}</td>
                                         <td></td>
                                     </tr>
+                                    @if ($quotation->amount_in_words)
+                                        <tr>
+                                            <td colspan="6" class="fst-italic">
+                                                <small><strong>Amount in Words:</strong> {{ $quotation->amount_in_words }}</small>
+                                            </td>
+                                        </tr>
+                                    @endif
                                 </tfoot>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                @if ($quotation->notes)
+                @if ($quotation->acknowledgement || $quotation->product_spec)
                     <div class="card shadow-sm">
                         <div class="card-header">
-                            <h6 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Terms & Notes</h6>
+                            <h6 class="mb-0"><i class="fas fa-align-left me-2"></i>Acknowledgement & Product Specification</h6>
                         </div>
                         <div class="card-body text-white">
-                            <p class="mb-0">{{ $quotation->notes }}</p>
+                            @if ($quotation->acknowledgement)
+                                <p class="mb-2">{{ $quotation->acknowledgement }}</p>
+                            @endif
+                            @if ($quotation->product_spec)
+                                <div><small class=" d-block">Product Specification / Type</small><strong>{{ $quotation->product_spec }}</strong></div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                @if ($quotation->delivery_terms || $quotation->warranty_terms || $quotation->payment_terms || $quotation->inspection_vendor_scope || $quotation->inspection_third_party_scope)
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-file-contract me-2"></i>Terms & Conditions</h6>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                @if ($quotation->delivery_terms)
+                                    <dt class="col-sm-4">Delivery Terms</dt><dd class="col-sm-8">{{ $quotation->delivery_terms }}</dd>
+                                @endif
+                                @if ($quotation->warranty_terms)
+                                    <dt class="col-sm-4">Warranty Terms</dt><dd class="col-sm-8">{{ $quotation->warranty_terms }}</dd>
+                                @endif
+                                @if ($quotation->payment_terms)
+                                    <dt class="col-sm-4">Payment Terms</dt><dd class="col-sm-8">{!! nl2br(e($quotation->payment_terms)) !!}</dd>
+                                @endif
+                                @if ($quotation->inspection_vendor_scope)
+                                    <dt class="col-sm-4">Inspection — Vendor Scope</dt><dd class="col-sm-8">{!! nl2br(e($quotation->inspection_vendor_scope)) !!}</dd>
+                                @endif
+                                @if ($quotation->inspection_third_party_scope)
+                                    <dt class="col-sm-4">Inspection — Third Party</dt><dd class="col-sm-8">{!! nl2br(e($quotation->inspection_third_party_scope)) !!}</dd>
+                                @endif
+                            </dl>
+                        </div>
+                    </div>
+                @endif
+
+                @if ($quotation->notes || $quotation->closing_statement || $quotation->signatory_company || $quotation->signatory_designation)
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-pen-nib me-2"></i>Notes & Signatory</h6>
+                        </div>
+                        <div class="card-body ">
+                            @if ($quotation->notes)
+                                <div class="mb-3">{!! \App\Support\HtmlSanitizer::clean($quotation->notes) !!}</div>
+                            @endif
+                            @if ($quotation->closing_statement)
+                                <p class="mb-2 fst-italic">{{ $quotation->closing_statement }}</p>
+                            @endif
+                            @if ($quotation->signatory_company || $quotation->signatory_designation)
+                                <div class="border-top pt-2">
+                                    <strong>{{ $quotation->signatory_company }}</strong>
+                                    @if ($quotation->signatory_designation)<div class="small">{{ $quotation->signatory_designation }}</div>@endif
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endif
@@ -126,7 +235,7 @@
                     <div class="card-header bg-info text-white">
                         <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Quote Info</h6>
                     </div>
-                    <div class="card-body text-white">
+                    <div class="card-body ">
                         <div class="mb-3">
                             <small class=" d-block">Quote Number</small>
                             <strong>{{ $quotation->quote_number }}</strong>

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Product Catalog')
 
@@ -88,7 +88,7 @@
                                             {{ $product->category ?? 'General' }}
                                         </span>
                                         <span
-                                            class="fw-bold text-success fs-5">${{ number_format($product->price, 2) }}</span>
+                                            class="fw-bold text-success fs-5">₹{{ number_format($product->price, 2) }}</span>
                                     </div>
                                     <small class="text-muted d-block mb-3">
                                         <i class="fas fa-store me-1"></i>{{ $product->vendor->company ?? 'N/A' }} |

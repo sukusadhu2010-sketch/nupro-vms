@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Customer Dashboard')
 
@@ -68,7 +68,7 @@
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span>Total Spend</span>
-                            <span class="fw-bold h5 text-success">$18,500</span>
+                            <span class="fw-bold h5 text-success">₹18,500</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span>Vendors Engaged</span>

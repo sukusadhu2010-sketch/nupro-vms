@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Quotation Management')
 
@@ -63,7 +63,7 @@
                                                 </span>
                                             </td>
                                             <td class="text-end fw-bold text-success">
-                                                ${{ number_format($quotation->total_amount, 2) }}
+                                                ₹{{ number_format($quotation->total_amount, 2) }}
                                             </td>
                                             <td>
                                                 {{ $quotation->valid_until ? $quotation->valid_until->format('M d, Y') : 'N/A' }}

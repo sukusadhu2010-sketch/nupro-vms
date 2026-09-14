@@ -10,8 +10,10 @@ class Vendor extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'name', 'email', 'phone', 'company', 'address', 'status', 'specialization'
+        'name', 'email', 'phone', 'particulars', 'vendor_type', 'address', 'status', 'gst_no'
     ];
+
+    public const VENDOR_TYPES = ['FOUNDRY', 'SUB VENDOR'];
 
     public function user()
     {

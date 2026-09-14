@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Models\Vendor;
-use App\Models\Unit;
+use App\Models\ProductCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -17,26 +16,55 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('vendor')->orderBy('created_at', 'desc');
+        $query = Product::with('productCategory')->orderBy('created_at', 'desc');
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%'.$request->search.'%')
-                  ->orWhere('sku', 'like', '%'.$request->search.'%');
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->search.'%')
+                  ->orWhere('sku', 'like', '%'.$request->search.'%')
+                  ->orWhere('hsn_code', 'like', '%'.$request->search.'%')
+                  ->orWhereHas('productCategory', function ($cq) use ($request) {
+                      $cq->where('name', 'like', '%'.$request->search.'%');
+                  });
+            });
         }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('vendor_id')) {
-            $query->where('vendor_id', $request->vendor_id);
+        if ($request->filled('category_id')) {
+            $query->where('product_category_id', $request->category_id);
         }
 
-        $products = $query->with('unit')->paginate(15);
+        $products = $query->paginate(15);
 
-        $vendors = Vendor::where('status', 'active')->pluck('company', 'id');
+        $categories = ProductCategory::orderBy('name')->pluck('name', 'id');
 
-        return view('admin.products.index', compact('products', 'vendors'));
+        return view('admin.products.index', compact('products', 'categories'));
+    }
+
+    /**
+     * Auto-generate the Product Code from Category + Product Name.
+     * Format: CATEGORY-NAME (uppercased, slugified), with a numeric
+     * suffix appended only if the code already exists (sku is unique in DB).
+     */
+    private function generateProductCode(?string $category, string $name): string
+    {
+        $slug = function ($value) {
+            return strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $value ?? ''));
+        };
+
+        $code = $slug($category) . '-' . $slug($name);
+        $code = substr($code, 0, 50) ?: 'PROD';
+
+        $base = $code;
+        $i = 1;
+        while (Product::where('sku', $code)->exists()) {
+            $code = substr($base, 0, 47) . '-' . ++$i;
+        }
+
+        return $code;
     }
 
     /**
@@ -44,9 +72,8 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $vendors = Vendor::where('status', 'active')->pluck('company', 'id');
-        $units = Unit::where('status', 'active')->pluck('name', 'id');
-        return view('admin.products.create', compact('vendors', 'units'));
+        $categories = ProductCategory::where('status', 'active')->orderBy('name')->pluck('name', 'id');
+        return view('admin.products.create', compact('categories'));
     }
 
     /**
@@ -56,25 +83,17 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|unique:products,sku|max:50',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'vendor_id' => 'required|exists:vendors,id',
-            'unit_id' => 'nullable|exists:units,id',
-            'status' => 'required|in:draft,active,out_of_stock,inactive',
-            'category' => 'nullable|string|max:100',
-            'image' => 'nullable|image|max:2048',
+            'hsn_code' => 'nullable|string|max:50',
+            'product_category_id' => 'required|exists:product_categories,id',
         ]);
 
-        $data = $request->only([
-            'name', 'sku', 'description', 'price', 'stock_quantity', 
-            'unit_id', 'vendor_id', 'status', 'category'
-        ]);
+        $category = ProductCategory::find($request->product_category_id);
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
-        }
+        $data = $request->only(['name', 'hsn_code', 'product_category_id']);
+        // Auto-generated Product Code (Category + Product Name)
+        $data['sku'] = $this->generateProductCode($category->name ?? null, $request->name);
+        // Defaults for fields kept in DB but hidden from the form
+        $data['status'] = 'active';
 
         Product::create($data);
 
@@ -95,9 +114,8 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        $vendors = Vendor::where('status', 'active')->pluck('company', 'id');
-        $units = Unit::where('status', 'active')->pluck('name', 'id');
-        return view('admin.products.edit', compact('product', 'vendors', 'units'));
+        $categories = ProductCategory::where('status', 'active')->orderBy('name')->pluck('name', 'id');
+        return view('admin.products.edit', compact('product', 'categories'));
     }
 
     /**
@@ -107,29 +125,15 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => ['required', 'string', Rule::unique('products', 'sku')->ignore($product)],
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'vendor_id' => 'required|exists:vendors,id',
-            'unit_id' => 'nullable|exists:units,id',
-            'status' => 'required|in:draft,active,out_of_stock,inactive',
-            'category' => 'nullable|string|max:100',
-            'image' => 'nullable|image|max:2048',
+            'hsn_code' => 'nullable|string|max:50',
+            'product_category_id' => 'required|exists:product_categories,id',
         ]);
 
-        $data = $request->only([
-            'name', 'sku', 'description', 'price', 'stock_quantity', 
-            'unit_id', 'vendor_id', 'status', 'category'
-        ]);
+        $category = ProductCategory::find($request->product_category_id);
 
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-            $data['image'] = $request->file('image')->store('products', 'public');
-        }
+        $data = $request->only(['name', 'hsn_code', 'product_category_id']);
+        // Regenerate the auto Product Code (Category + Product Name)
+        $data['sku'] = $this->generateProductCode($category->name ?? null, $request->name);
 
         $product->update($data);
 

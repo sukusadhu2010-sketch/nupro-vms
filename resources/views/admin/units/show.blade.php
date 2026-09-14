@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Unit Details - Admin')
 
@@ -119,7 +119,7 @@
                                                         <code class="bg-light px-2 py-1 rounded">{{ $product->sku }}</code>
                                                     </td>
                                                     <td class="fw-bold text-success">
-                                                        ${{ number_format($product->price, 2) }}
+                                                        ₹{{ number_format($product->price, 2) }}
                                                     </td>
                                                     <td>
                                                         @if ($product->stock_quantity > 0)

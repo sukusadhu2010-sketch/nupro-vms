@@ -27,7 +27,7 @@
                         <form method="GET" class="row g-3">
                             <div class="col-md-5">
                                 <input type="text" name="search" class="form-control form-control-sm"
-                                    placeholder="Search customers by name or company..." value="{{ request('search') }}">
+                                    placeholder="Search customers by name, email, mobile or GST no..." value="{{ request('search') }}">
                             </div>
                             <div class="col-md-3">
                                 <select name="status" class="form-select form-select-sm">
@@ -62,10 +62,10 @@
                                 <thead class="table-light sticky-top">
                                     <tr>
                                         <th>#</th>
-                                        <th>Company</th>
-                                        <th>Customer</th>
+                                        <th>Contact Name</th>
                                         <th>Email</th>
-                                        <th>Phone</th>
+                                        <th>Mobile Number</th>
+                                        <th>GST No</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -77,24 +77,16 @@
                                                 <div class="fw-bold text-warning">{{ $customers->firstItem() + $index }}</div>
                                             </td>
                                             <td>
-                                                <div class="fw-semibold text-dark">{{ $customer->company }}</div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="avatar avatar-sm bg-gradient-warning text-white rounded-circle me-3 d-flex align-items-center justify-content-center"
-                                                        style="width: 40px; height: 40px;">
-                                                        {{ strtoupper(substr($customer->user->name ?? '', 0, 1)) }}
-                                                    </div>
-                                                    <div>
-                                                        <div class="fw-semibold">{{ $customer->user->name ?? 'N/A' }}</div>
-                                                    </div>
-                                                </div>
+                                                <div class="fw-semibold text-dark">{{ $customer->name ?? $customer->user->name ?? 'N/A' }}</div>
                                             </td>
                                             <td>
                                                 <small class="text-muted">{{ $customer->user->email ?? 'N/A' }}</small>
                                             </td>
                                             <td>
                                                 <small>{{ $customer->phone ?? 'N/A' }}</small>
+                                            </td>
+                                            <td>
+                                                <small><code class="bg-light px-2 py-1 rounded">{{ $customer->gst_no ?? 'N/A' }}</code></small>
                                             </td>
                                             <td>
                                                 @php

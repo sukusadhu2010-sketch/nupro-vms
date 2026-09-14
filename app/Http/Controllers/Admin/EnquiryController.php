@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\Amount;
 use Illuminate\Support\Facades\Auth;
 
 class EnquiryController extends Controller
@@ -48,13 +49,33 @@ class EnquiryController extends Controller
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
-            'products.*.estimated_price' => 'nullable|numeric|min:0',
-            'products.*.notes' => 'nullable|string|max:500',
+            'products.*.unit_price' => 'nullable|numeric|min:0',
+            'products.*.total_price' => 'nullable|numeric|min:0',
+            'products.*.payment_methods' => 'nullable|array',
+            'products.*.payment_methods.*' => 'in:LC,Credit,Advance,PIC,PDC,Proforma Invoice',
+            'products.*.moc' => 'required|string|max:255',
+            'products.*.mfg_spec' => 'required|string|max:255',
+            'products.*.trim' => 'required|string|max:255',
+            'products.*.operation' => 'required|string|max:255',
+            'products.*.end_connection' => 'required|string|max:255',
+            'products.*.rating' => 'required|string|max:255',
+            'products.*.media' => 'required|string|max:255',
+            'products.*.remarks' => 'nullable|string|max:1000',
             'message' => 'nullable|string|max:2000',
+            'tax_type' => 'nullable|in:igst,sgst_cgst',
             'attachments.*' => 'nullable|file|max:5120|mimes:pdf,jpg,jpeg,png,doc,docx',
         ]);
 
         DB::transaction(function () use ($request) {
+            $activeFy = \App\Models\FinancialYear::active();
+            if (!$activeFy) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'customer_id' => 'No active financial year. Please activate one in Financial Year Settings before creating an enquiry.',
+                ]);
+            }
+
+            $enquiryNumber = \App\Services\DocumentNumbering::nextNumber('ENQ', $activeFy);
+
             // Handle attachments
             $attachments = [];
             if ($request->hasFile('attachments')) {
@@ -66,21 +87,32 @@ class EnquiryController extends Controller
 
             $enquiry = Enquiry::create([
                 'customer_id' => $request->customer_id,
+                'enquiry_number' => $enquiryNumber,
+                'financial_year_id' => $activeFy->id,
                 'priority' => $request->priority,
                 'message' => $request->message,
                 'attachments' => $attachments,
                 'status' => 'pending'
             ]);
 
+            $taxable = 0;
             foreach ($request->products as $item) {
-                EnquiryItem::create([
-                    'enquiry_id' => $enquiry->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'estimated_price' => $item['estimated_price'],
-                    'notes' => $item['notes'] ?? ''
-                ]);
+                $unitPrice = (float) ($item['unit_price'] ?? 0);
+                $taxable += $item['quantity'] * $unitPrice;
+                EnquiryItem::create($this->itemData($enquiry->id, $item));
             }
+
+            // Total amount = quantity amount; taxes applied on top
+            $taxes = Amount::taxes($taxable, $request->input('tax_type', 'igst'));
+            $enquiry->update([
+                'total_amount' => $taxable,
+                'tax_type' => $taxes['tax_type'],
+                'igst' => $taxes['igst'],
+                'sgst' => $taxes['sgst'],
+                'cgst' => $taxes['cgst'],
+                'tax_amount' => $taxes['tax_amount'],
+                'amount_in_words' => Amount::inWords($taxes['grand_total']),
+            ]);
 
             // Recalculate total
             $enquiry->refresh();
@@ -93,18 +125,29 @@ class EnquiryController extends Controller
     public function edit(Enquiry $enquiry)
     {
         $enquiry->load(['items.product.vendor', 'customer']);
-        
+
         $productsForForm = $enquiry->items->map(function ($item) {
             return [
                 'product_id' => $item->product_id,
                 'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+                'total_price' => $item->total_price,
                 'estimated_price' => $item->estimated_price,
-                'notes' => $item->notes
+                'notes' => $item->notes,
+                'payment_methods' => $item->payment_methods ?? [],
+                'moc' => $item->moc,
+                'mfg_spec' => $item->mfg_spec,
+                'trim' => $item->trim,
+                'operation' => $item->operation,
+                'end_connection' => $item->end_connection,
+                'rating' => $item->rating,
+                'media' => $item->media,
+                'remarks' => $item->remarks,
             ];
         })->toArray();
-        
+
         $enquiry->products = $productsForForm;
-        
+
         $customers = Customer::with('user')->where('status', 'active')->get();
         $products = Product::with('vendor')->where('status', 'active')->get();
         return view('admin.enquiries.edit', compact('enquiry', 'customers', 'products'));
@@ -119,10 +162,21 @@ class EnquiryController extends Controller
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
-            'products.*.estimated_price' => 'nullable|numeric|min:0',
-            'products.*.notes' => 'nullable|string|max:500',
+            'products.*.unit_price' => 'nullable|numeric|min:0',
+            'products.*.total_price' => 'nullable|numeric|min:0',
+            'products.*.payment_methods' => 'nullable|array',
+            'products.*.payment_methods.*' => 'in:LC,Credit,Advance,PIC,PDC,Proforma Invoice',
+            'products.*.moc' => 'required|string|max:255',
+            'products.*.mfg_spec' => 'required|string|max:255',
+            'products.*.trim' => 'required|string|max:255',
+            'products.*.operation' => 'required|string|max:255',
+            'products.*.end_connection' => 'required|string|max:255',
+            'products.*.rating' => 'required|string|max:255',
+            'products.*.media' => 'required|string|max:255',
+            'products.*.remarks' => 'nullable|string|max:1000',
             'message' => 'nullable|string|max:2000',
             'status' => 'required|in:pending,quoted,closed',
+            'tax_type' => 'nullable|in:igst,sgst_cgst',
         ]);
 
         DB::transaction(function () use ($request, $enquiry) {
@@ -147,15 +201,23 @@ class EnquiryController extends Controller
             $enquiry->items()->delete();
 
             // Create new items
+            $taxable = 0;
             foreach ($request->products as $item) {
-                EnquiryItem::create([
-                    'enquiry_id' => $enquiry->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'estimated_price' => $item['estimated_price'],
-                    'notes' => $item['notes'] ?? ''
-                ]);
+                $taxable += $item['quantity'] * (float) ($item['unit_price'] ?? 0);
+                EnquiryItem::create($this->itemData($enquiry->id, $item));
             }
+
+            // Total amount = quantity amount; taxes applied on top
+            $taxes = Amount::taxes($taxable, $request->input('tax_type', 'igst'));
+            $enquiry->update([
+                'total_amount' => $taxable,
+                'tax_type' => $taxes['tax_type'],
+                'igst' => $taxes['igst'],
+                'sgst' => $taxes['sgst'],
+                'cgst' => $taxes['cgst'],
+                'tax_amount' => $taxes['tax_amount'],
+                'amount_in_words' => Amount::inWords($taxes['grand_total']),
+            ]);
 
             // Recalculate total
             $enquiry->refresh();
@@ -163,6 +225,29 @@ class EnquiryController extends Controller
         });
 
         return redirect()->route('enquiries.index')->with('success', 'Enquiry updated successfully!');
+    }
+
+    private function itemData(int $enquiryId, array $item): array
+    {
+        $unitPrice = $item['unit_price'] ?? 0;
+
+        return [
+            'enquiry_id' => $enquiryId,
+            'product_id' => $item['product_id'],
+            'quantity' => $item['quantity'],
+            'unit_price' => $unitPrice,
+            'total_price' => $item['quantity'] * $unitPrice,
+            'notes' => $item['remarks'] ?? '',
+            'payment_methods' => $item['payment_methods'] ?? [],
+            'moc' => $item['moc'] ?? null,
+            'mfg_spec' => $item['mfg_spec'] ?? null,
+            'trim' => $item['trim'] ?? null,
+            'operation' => $item['operation'] ?? null,
+            'end_connection' => $item['end_connection'] ?? null,
+            'rating' => $item['rating'] ?? null,
+            'media' => $item['media'] ?? null,
+            'remarks' => $item['remarks'] ?? null,
+        ];
     }
 
     public function destroy(Enquiry $enquiry)
@@ -188,6 +273,6 @@ class EnquiryController extends Controller
         $enquiry->update(['status' => $request->status]);
         return redirect()->route('enquiries.index')->with('success', 'Enquiry status updated!');
     }
-   
+
 }
 

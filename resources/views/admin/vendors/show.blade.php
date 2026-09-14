@@ -14,12 +14,12 @@
                             <i class="fas fa-users-cog fa-2x"></i>
                         </div>
                         <div>
-                            <h1 class="h3 mb-1 fw-bold">{{ $vendor->company }}</h1>
-                            <p class="mb-1 fw-semibold text-primary">{{ $vendor->user->name }}</p>
+                            <h1 class="h3 mb-1 fw-bold">{{ $vendor->user->name }}</h1>
+                            <p class="mb-1 fw-semibold text-primary">Contact Name / Primary Identifier</p>
                             <div class="d-flex align-items-center gap-3 text-muted small">
                                 <span><i class="fas fa-envelope me-1"></i>{{ $vendor->user->email }}</span>
                                 @if ($vendor->phone)
-                                    <span><i class="fas fa-phone me-1"></i>{{ $vendor->phone }}</span>
+                                    <span><i class="fas fa-mobile-alt me-1"></i>{{ $vendor->phone }}</span>
                                 @endif
                                 <span><i
                                         class="fas fa-calendar-day me-1"></i>{{ $vendor->created_at->format('M d, Y') }}</span>
@@ -53,8 +53,9 @@
                                             <i class="fas fa-id-badge text-primary fa-lg"></i>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="fw-bold mb-1">Specialization</h6>
-                                            <p class="mb-0 text-muted fs-5">{{ $vendor->specialization }}</p>
+                                            <h6 class="fw-bold mb-1">Particulars</h6>
+                                            <p class="mb-0 text-muted fs-5">{{ $vendor->particulars ?: 'Not provided' }}</p>
+                                            <span class="badge {{ $vendor->vendor_type === 'FOUNDRY' ? 'bg-primary' : 'bg-secondary' }} mt-2">Vendor Type: {{ $vendor->vendor_type ?: 'Not set' }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -65,8 +66,8 @@
                                             <i class="fas fa-map-marker-alt text-success fa-lg"></i>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="fw-bold mb-1">Address</h6>
-                                            <p class="mb-0 text-muted">{{ $vendor->address ?: 'Not provided' }}</p>
+                                            <h6 class="fw-bold mb-1">GST No</h6>
+                                            <p class="mb-0 text-muted">{{ $vendor->gst_no ?: 'Not provided' }}</p>
                                         </div>
                                     </div>
                                 </div>

@@ -32,11 +32,12 @@
                                     <label class="form-label fw-bold mb-3">Basic Information</label>
                                     <div class="row g-3">
                                         <div class="col-12">
-                                            <label for="name" class="form-label fw-semibold">Full Name <span
+                                            <label for="name" class="form-label fw-semibold">Contact Name <span
                                                     class="text-danger">*</span></label>
                                             <input type="text"
                                                 class="form-control form-control-lg @error('name') is-invalid @enderror"
                                                 id="name" name="name" value="{{ old('name') }}" required>
+                                            <small class="text-muted">Primary identifier for the customer.</small>
                                             @error('name')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -52,29 +53,37 @@
                                             @enderror
                                         </div>
                                         <div class="col-12">
-                                            <label for="phone" class="form-label fw-semibold">Phone</label>
-                                            <input type="tel" class="form-control form-control-lg" id="phone"
-                                                name="phone" value="{{ old('phone') }}">
+                                            <label for="phone" class="form-label fw-semibold">Mobile Number</label>
+                                            <input type="tel" inputmode="numeric"
+                                                class="form-control form-control-lg @error('phone') is-invalid @enderror"
+                                                id="phone" name="phone" value="{{ old('phone') }}"
+                                                placeholder="Digits only, e.g. 9876543210">
+                                            <small class="text-muted">Only numeric digits allowed (no spaces, signs or
+                                                decimals).</small>
+                                            @error('phone')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Company Info -->
+                                <!-- Additional Info -->
                                 <div class="col-lg-6">
-                                    <label class="form-label fw-bold mb-3">Company Details</label>
+                                    <label class="form-label fw-bold mb-3">Additional Details</label>
                                     <div class="row g-3">
                                         <div class="col-12">
-                                            <label for="company" class="form-label fw-semibold">Company Name <span
+                                            <label for="gst_no" class="form-label fw-semibold">GST No <span
                                                     class="text-danger">*</span></label>
                                             <input type="text"
-                                                class="form-control form-control-lg @error('company') is-invalid @enderror"
-                                                id="company" name="company" value="{{ old('company') }}" required>
-                                            @error('company')
+                                                class="form-control form-control-lg @error('gst_no') is-invalid @enderror"
+                                                id="gst_no" name="gst_no" value="{{ old('gst_no') }}" required
+                                                maxlength="20" placeholder="e.g. 27ABCDE1234F1Z5">
+                                            @error('gst_no')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
                                         <div class="col-12">
-                                            <label for="address" class="form-label fw-semibold">Business Address</label>
+                                            <label for="address" class="form-label fw-semibold">Address</label>
                                             <textarea class="form-control form-control-lg" id="address" name="address" rows="3">{{ old('address') }}</textarea>
                                         </div>
                                         <div class="col-12">
@@ -127,13 +136,10 @@
                     spinner.classList.remove('d-none');
                 });
 
-                // Auto-format phone
+                // Mobile Number: strip everything except digits (blocks
+                // negatives, decimals, spaces and non-numeric characters)
                 document.getElementById('phone').addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length >= 10) {
-                        value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-                    }
-                    e.target.value = value;
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
                 });
             });
         </script>

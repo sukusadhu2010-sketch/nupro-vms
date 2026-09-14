@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Vendor Dashboard')
 
@@ -154,7 +154,7 @@
                                     <h6 class="mb-1">Payment received</h6>
                                     <small>3 days ago</small>
                                 </div>
-                                <small class="text-muted">$2,500 invoice cleared</small>
+                                <small class="text-muted">₹2,500 invoice cleared</small>
                             </a>
                         </div>
                     </div>

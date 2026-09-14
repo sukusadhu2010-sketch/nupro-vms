@@ -33,15 +33,20 @@
                     <div class="card-header bg-primary text-white">
                         <h6 class="mb-0"><i class="fas fa-user me-2"></i>Customer Details</h6>
                     </div>
-                    <div class="card-body text-white">
+                    <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <strong>{{ $enquiry->customer->company ?? $enquiry->customer->name }}</strong><br>
-                                <small class="">{{ $enquiry->customer->user->email }}</small>
+                                <strong>{{ $enquiry->customer->company ?? $enquiry->customer->name ?? 'N/A' }}</strong><br>
+                                <small class="">{{ $enquiry->customer?->user?->email ?? 'No email available' }}</small>
                             </div>
                             <div class="col-md-6 text-end">
                                 Total Amount: <strong
-                                    class="text-success">${{ number_format($enquiry->total_amount, 2) }}</strong>
+                                    class="text-success">₹{{ number_format($enquiry->total_amount, 2) }}</strong>
+                                @if (($enquiry->tax_amount ?? 0) > 0)
+                                    <br><small>Tax: ₹{{ number_format($enquiry->tax_amount, 2) }} |
+                                    Grand Total: <strong
+                                        class="text-success">₹{{ number_format($enquiry->total_amount + $enquiry->tax_amount, 2) }}</strong></small>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -95,14 +100,14 @@
                                                         <strong>{{ $item->product->name }}</strong>
                                                         <br><small class="">{{ $item->product->sku }}</small>
                                                         <br><small
-                                                            class="">{{ $item->product->vendor->company }}</small>
+                                                            class="">{{ $item->product->vendor?->company ?? 'No Vendor' }}</small>
                                                     </td>
                                                     <td class="text-center fw-bold">{{ $item->quantity }}</td>
                                                     <td class="text-end">
-                                                        ${{ number_format($item->estimated_price ?? $item->product->price, 2) }}
+                                                        ₹{{ number_format($item->estimated_price ?? $item->product->price, 2) }}
                                                     </td>
                                                     <td class="text-end fw-bold text-success">
-                                                        ${{ number_format($item->quantity * ($item->estimated_price ?? $item->product->price), 2) }}
+                                                        ₹{{ number_format($item->quantity * ($item->estimated_price ?? $item->product->price), 2) }}
                                                     </td>
                                                     <td>
                                                         @if ($item->notes)
@@ -171,7 +176,7 @@
                                                             </span>
                                                         </td>
                                                         <td class="text-end fw-bold">
-                                                            ${{ number_format($quote->total_amount, 2) }}
+                                                            ₹{{ number_format($quote->total_amount, 2) }}
                                                         </td>
                                                         <td>
                                                             {{ $quote->valid_until ? $quote->valid_until->format('M d, Y') : 'N/A' }}
@@ -248,7 +253,7 @@
                     @if ($enquiry->message)
                         <div class="tab-pane fade" id="message" role="tabpanel">
                             <div class="card shadow-sm border-top-0 rounded-0 rounded-bottom">
-                                <div class="card-body text-white">
+                                <div class="card-body">
                                     <p class="mb-0">{{ $enquiry->message }}</p>
                                 </div>
                             </div>
@@ -283,7 +288,7 @@
                         <a href="{{ route('quotations.create', $enquiry) }}" class="btn btn-success btn-lg w-100 mb-2">
                             <i class="fas fa-file-invoice-dollar me-2"></i>Convert to Quote   <span class="badge bg-primary"> {{ $enquiry->quotations->count() }}</span>
                         </a>
-                        
+
                         <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-warning btn-lg w-100 mb-2">
                             <i class="fas fa-edit me-2"></i>Edit Enquiry
                         </a>

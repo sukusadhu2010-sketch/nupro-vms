@@ -27,7 +27,7 @@
             flex-grow: 1;
         }
         .dark table tbody{
-            color: #ffffff
+            color: var(--text-primary, #e5e7eb);
         }
     </style>
     @stack('styles')
@@ -93,7 +93,14 @@
         <div class="sidebar bg-light border-end vh-100 ps ps-show-scrollbar d-none d-lg-block" id="sidebar"
             style="width: 300px;">
             <div class="p-3">
-                <h6 class="text-uppercase text-muted mb-3"></h6>
+                @php($org = \App\Models\OrganizationSetting::current())
+                <div class="text-center mb-3">
+                    @if ($org->logo_path)
+                        <img src="{{ asset('storage/' . $org->logo_path) }}" alt="{{ $org->name }}" style="max-height: 60px; max-width: 180px;">
+                    @else
+                        <span class="fw-bold text-primary">{{ $org->name }}</span>
+                    @endif
+                </div>
                 <ul class="nav flex-column">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
@@ -111,6 +118,12 @@
                         <a class="nav-link {{ request()->routeIs('quotations.*') ? 'active' : '' }}"
                             href="{{ route('quotations.index') }}">
                             <i class="fas fa-file-invoice-dollar me-2"></i><span class="sidebar-text">Quotations</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('quotation-forms.*') ? 'active' : '' }}"
+                            href="{{ route('quotation-forms.index') }}">
+                            <i class="fas fa-file-signature me-2"></i><span class="sidebar-text">Quotation Forms</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -151,9 +164,27 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.products.*') || request()->routeIs('product-categories.*') ? 'active' : '' }}"
+                            href="{{ route('product-categories.index') }}">
+                            <i class="fas fa-sitemap me-2"></i><span class="sidebar-text">Product Categories</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('units.*') ? 'active' : '' }}"
                             href="{{ route('units.index') }}">
                             <i class="fas fa-ruler-combined me-2"></i><span class="sidebar-text">Units</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('financial-years.*') ? 'active' : '' }}"
+                            href="{{ route('financial-years.index') }}">
+                            <i class="fas fa-calendar-alt me-2"></i><span class="sidebar-text">Financial Year Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('organization.*') ? 'active' : '' }}"
+                            href="{{ route('organization.edit') }}">
+                            <i class="fas fa-building me-2"></i><span class="sidebar-text">Organization Settings</span>
                         </a>
                     </li>
                     <li class="nav-item mt-auto">
@@ -213,10 +244,8 @@
                 new PerfectScrollbar(sidebar);
             }
 
-            // Force Dark Mode Default
-            body.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-            darkToggle.querySelector('i').className = 'fas fa-sun fs-5 theme-icon';
+            // Respect the user's saved theme (falls back to system preference)
+            // The toggle button above handles switching.
 
             // Sidebar Toggle Mobile
             if (sidebarToggle) {

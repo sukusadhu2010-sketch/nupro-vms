@@ -17,7 +17,7 @@
                 <h1 class="h2 mb-1">
                     <i class="fas fa-file-invoice-dollar me-2 text-success"></i>Create Quotation
                 </h1>
-                <p class="text-muted">Generate quotation for Enquiry #{{ $enquiry->id }} — Version {{ $nextVersion }}</p>
+                <p class="text-muted">Generate quotation for Enquiry #{{ $enquiry->id }} â€” Version {{ $nextVersion }}</p>
             </div>
         </div>
 
@@ -32,10 +32,9 @@
                         <div class="card-body">
                             <div class="row mb-4">
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">Quote Number <span
-                                            class="text-danger">*</span></label>
-                                    <input type="text" name="quote_number" class="form-control"
-                                        value="{{ $quoteNumber }}" readonly>
+                                    <label class="form-label fw-bold">Quote Number</label>
+                                    <input type="text" class="form-control" value="{{ $quoteNumber ?? 'N/A' }}" readonly tabindex="-1">
+                                    <small class="text-muted">Auto-generated on save (FY: {{ ($activeFy ?? null)?->fy_label ?? 'none active' }}) — not editable.</small>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-bold">Version <span class="text-danger">*</span></label>
@@ -54,46 +53,100 @@
                                 </div>
                             </div>
 
+                              <!-- ============ ACKNOWLEDGEMENT & PRODUCT SPEC ============ -->
+                            <div class="card shadow-sm border-0 rounded-4 mb-4 mt-4">
+                                <div class="card-header bg-light rounded-top-4">
+                                    <h6 class="mb-0 fw-bold"><i class="fas fa-align-left me-2 text-success"></i>Acknowledgement &amp; Product Specification</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Acknowledgement Text</label>
+                                            <textarea name="acknowledgement" class="form-control" rows="2"
+                                                placeholder="With reference to your enquiry...">{{ old('acknowledgement') }}</textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Product Specification / Type <span class="text-danger">*</span></label>
+                                            <input type="text" name="product_spec" class="form-control" required
+                                                placeholder="e.g. SLUICE GATE / OPEN CHANNEL GATE"
+                                                value="{{ old('product_spec') }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <label class="form-label fw-bold mb-3">Quote Items <span class="text-danger">*</span></label>
                             <div id="itemsContainer">
                                 @foreach ($enquiry->items as $index => $item)
                                     <div class="item-row row mb-3 border p-3 rounded bg-light">
-                                        <div class="col-md-5">
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-bold small">Product Name <span class="text-danger">*</span></label>
                                             <select class="form-select product-select"
-                                                name="items[{{ $index }}][product_id]">
+                                                name="items[{{ $index }}][product_id]" required>
                                                 @foreach (App\Models\Product::with('vendor')->where('status', 'active')->get() as $p)
                                                     <option value="{{ $p->id }}" data-price="{{ $p->price }}"
                                                         {{ $p->id == $item->product_id ? 'selected' : '' }}>
-                                                        {{ $p->name }} - ${{ $p->price }}
+                                                        {{ $p->name }}
                                                     </option>
                                                 @endforeach
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <input type="number" class="form-control qty-input"
-                                                name="items[{{ $index }}][quantity]" min="1"
-                                                value="{{ $item->quantity }}">
+                                            <label class="form-label fw-bold small">Quantity <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control qty-input" inputmode="numeric"
+                                                name="items[{{ $index }}][quantity]" value="{{ $item->quantity }}" required>
                                         </div>
-                                        <div class="col-md-2">
-                                            <input type="number" step="0.01" class="form-control unit-price"
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-bold small">Unit Price</label>
+                                            <input type="text" class="form-control unit-price-input" inputmode="decimal"
                                                 name="items[{{ $index }}][unit_price]"
-                                                value="{{ $item->estimated_price ?? $item->product->price }}"
-                                                min="0">
+                                                value="{{ number_format($item->unit_price ?? $item->estimated_price ?? $item->product->price, 2, '.', '') }}">
                                         </div>
-                                        <div class="col-md-2">
-                                            <div class="subtotal">
-                                                ${{ number_format($item->quantity * ($item->estimated_price ?? $item->product->price), 2) }}
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-bold small">Total Price</label>
+                                            <input type="text" class="form-control total-price-input" inputmode="decimal"
+                                                name="items[{{ $index }}][total_price]"
+                                                value="{{ number_format($item->total_price ?? ($item->quantity * ($item->unit_price ?? $item->product->price)), 2, '.', '') }}" readonly>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label fw-bold small mb-1">LC / Credit / Advance / PIC / PDC / Proforma Invoice</label>
+                                            <div class="d-flex flex-wrap gap-3">
+                                                @foreach (['LC' => 'LC', 'Credit' => 'Credit', 'Advance' => 'Advance', 'PIC' => 'PIC', 'PDC' => 'PDC', 'Proforma Invoice' => 'Proforma Invoice'] as $key => $label)
+                                                    <div class="form-check">
+                                                        <input class="form-check-input pay-method" type="checkbox"
+                                                            name="items[{{ $index }}][payment_methods][]" value="{{ $key }}"
+                                                            id="pay_{{ $index }}_{{ $loop->index }}"
+                                                            {{ in_array($key, $item->payment_methods ?? []) ? 'checked' : '' }}>
+                                                        <label class="form-check-label small" for="pay_{{ $index }}_{{ $loop->index }}">{{ $label }}</label>
+                                                    </div>
+                                                @endforeach
                                             </div>
                                         </div>
-                                        <div class="col-md-1">
+                                        <div class="col-12 mt-2">
+                                            <div class="description-entry border rounded-3 p-3 bg-white">
+                                                <div class="mb-2">
+                                                    <strong class="small"><i class="fas fa-list-ul me-1 text-warning"></i>Description</strong>
+                                                    <small class="text-muted ms-2">(* marked fields are mandatory)</small>
+                                                </div>
+                                                <div class="row g-2">
+                                                    @foreach (['moc' => '* MOC (Material of Construction)', 'mfg_spec' => '* MFG Spec (Manufacturing Specification)', 'trim' => '* Trim', 'operation' => '* Operation', 'end_connection' => '* End Connection', 'rating' => '* Rating', 'media' => '* Media'] as $field => $descLabel)
+                                                        <div class="col-md-6 col-lg-4">
+                                                            <label class="form-label small fw-semibold mb-1">{{ $descLabel }}</label>
+                                                            <input type="text" class="form-control form-control-sm" name="items[{{ $index }}][{{ $field }}]" required value="{{ $item->{$field} ?? '' }}">
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label fw-bold small">Remarks</label>
+                                            <textarea class="form-control" name="items[{{ $index }}][remarks]" rows="2" placeholder="Remarks">{{ $item->remarks ?? $item->notes }}</textarea>
+                                        </div>
+                                        <div class="col-12 mt-2 d-flex justify-content-end">
+                                            <div class="subtotal me-3 fw-bold">₹0.00</div>
                                             <button type="button" class="btn btn-sm btn-outline-danger remove-row">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        </div>
-                                        <div class="col-12 mt-2">
-                                            <input type="text" class="form-control"
-                                                name="items[{{ $index }}][notes]" placeholder="Item notes"
-                                                value="{{ $item->notes }}">
                                         </div>
                                     </div>
                                 @endforeach
@@ -102,9 +155,75 @@
                                 <i class="fas fa-plus"></i> Add Item
                             </button>
 
-                            <div class="mt-4">
-                                <label class="form-label fw-bold">Quotation Notes</label>
-                                <textarea name="notes" class="form-control" rows="3" placeholder="Terms, delivery, payment conditions..."></textarea>
+
+
+                            <!-- ============ TERMS & CONDITIONS ============ -->
+                            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                                <div class="card-header bg-light rounded-top-4">
+                                    <h6 class="mb-0 fw-bold"><i class="fas fa-file-contract me-2 text-danger"></i>Terms &amp; Conditions <span class="text-danger">*</span></h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">Delivery Terms <span class="text-danger">*</span></label>
+                                            <input type="text" name="delivery_terms" class="form-control" required
+                                                placeholder="e.g. F.O.R. site / Ex Works"
+                                                value="{{ old('delivery_terms') }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">Warranty Terms <span class="text-danger">*</span></label>
+                                            <input type="text" name="warranty_terms" class="form-control" required
+                                                placeholder="e.g. 18 months from supply or 12 months from commissioning"
+                                                value="{{ old('warranty_terms') }}">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Payment Terms <span class="text-danger">*</span></label>
+                                            <textarea name="payment_terms" class="form-control" rows="3" required
+                                                placeholder="e.g. 30% advance with PO, 60% before dispatch, 10% after commissioning">{{ old('payment_terms') }}</textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">Inspection — Vendor Scope</label>
+                                            <textarea name="inspection_vendor_scope" class="form-control" rows="2">{{ old('inspection_vendor_scope') }}</textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">Inspection — Third Party Scope</label>
+                                            <textarea name="inspection_third_party_scope" class="form-control" rows="2">{{ old('inspection_third_party_scope') }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ============ NOTES & SIGNATORY ============ -->
+                            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                                <div class="card-header bg-light rounded-top-4">
+                                    <h6 class="mb-0 fw-bold"><i class="fas fa-pen-nib me-2 text-secondary"></i>Notes &amp; Signatory</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Notes</label>
+                                            <!-- <div id="notes-editor1" style="min-height: 40px; background: #fff;"></div>
+                                            <input type="hidden" name="notes" id="notes-input"> -->
+                                            <textarea name="notes" id="notes-input" class="form-control" rows="3">{{ old('notes') }}</textarea>
+                                        </div>
+                                        <div class="col-md-4" style="margin-top: 10px;">
+                                            <label class="form-label fw-semibold">Closing Statement</label>
+                                            <input type="text" name="closing_statement" class="form-control"
+                                                value="{{ old('closing_statement', 'Thanking You') }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold">Authorized Signatory (Company) <span class="text-danger">*</span></label>
+                                            <input type="text" name="signatory_company" class="form-control" required
+                                                value="{{ old('signatory_company', \App\Models\OrganizationSetting::current()->name) }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold">Designation <span class="text-danger">*</span></label>
+                                            <input type="text" name="signatory_designation" class="form-control" required
+                                                placeholder="e.g. Managing Director"
+                                                value="{{ old('signatory_designation') }}">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -120,10 +239,37 @@
                                 <span>Total Items:</span>
                                 <span id="totalItems">{{ $enquiry->items->sum('quantity') }}</span>
                             </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Amount (Qty):</span>
+                                <span id="totalAmount">₹{{ number_format($enquiry->total_amount, 2) }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label fw-bold small mb-1">Tax Details</label>
+                                <div class="form-check">
+                                    <input class="form-check-input tax-type" type="radio" name="tax_type" value="igst" checked id="taxIgst">
+                                    <label class="form-check-label small" for="taxIgst">IGST @18%</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input tax-type" type="radio" name="tax_type" value="sgst_cgst" id="taxSgst">
+                                    <label class="form-check-label small" for="taxSgst">SGST @9% + CGST @9%</label>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" id="igstRow">
+                                <span>IGST @18%:</span><span id="igstAmount">₹0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" id="sgstRow" style="display:none">
+                                <span>SGST @9%:</span><span id="sgstAmount">₹0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" id="cgstRow" style="display:none">
+                                <span>CGST @9%:</span><span id="cgstAmount">₹0.00</span>
+                            </div>
                             <div class="d-flex justify-content-between">
                                 <span class="h5 fw-bold">Grand Total:</span>
-                                <span class="h4 text-success"
-                                    id="grandTotal">${{ number_format($enquiry->total_amount, 2) }}</span>
+                                <span class="h4 text-success" id="grandTotal">₹{{ number_format($enquiry->total_amount, 2) }}</span>
+                            </div>
+                            <div class="mt-2 border-top pt-2">
+                                <small class="text-muted d-block">Amount (in words)</small>
+                                <small class="fw-semibold" id="amountInWords">Zero Rupees Only</small>
                             </div>
                         </div>
                     </div>
@@ -170,66 +316,138 @@
             let itemIndex = {{ count($enquiry->items) }};
 
             document.getElementById('addItem').addEventListener('click', function() {
+                itemIndex++;
                 const container = document.getElementById('itemsContainer');
                 const newRow = document.querySelector('.item-row').cloneNode(true);
-                newRow.querySelectorAll('select, input').forEach(el => {
-                    el.name = el.name.replace(/\[\d+\]/, `[${itemIndex}]`);
-                    if (el.type !== 'button') el.value = el.tagName === 'SELECT' ? el.value : '';
+
+                newRow.querySelectorAll('select, input, textarea, label').forEach(el => {
+                    if (el.name) el.name = el.name.replace(/\[\d+\]/g, `[${itemIndex}]`);
+                    if (el.id && el.id.includes('pay_')) el.id = el.id.replace(/pay_\d+_/, `pay_${itemIndex}_`);
                 });
-                newRow.querySelector('.subtotal').textContent = '$0.00';
-                newRow.querySelector('.remove-row').onclick = function() {
-                    newRow.remove();
-                    updateTotals();
-                };
-                newRow.querySelector('.product-select').onchange = function() {
-                    updateRow(newRow);
-                };
-                newRow.querySelector('.qty-input').oninput = function() {
-                    updateRow(newRow);
-                };
-                newRow.querySelector('.unit-price').oninput = function() {
-                    updateRow(newRow);
-                };
+                newRow.querySelectorAll('label[for]').forEach(el => {
+                    el.htmlFor = el.htmlFor.replace(/pay_\d+_/, `pay_${itemIndex}_`);
+                });
+
+                newRow.querySelector('.product-select').value = '';
+                newRow.querySelector('.qty-input').value = '1';
+                newRow.querySelector('.unit-price-input').value = '';
+                newRow.querySelector('.total-price-input').value = '';
+                newRow.querySelector('.subtotal').textContent = '₹0.00';
+                newRow.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+                newRow.querySelectorAll('input[type=text]:not(.qty-input):not(.unit-price-input):not(.total-price-input), textarea').forEach(el => el.value = '');
+
+                bindRow(newRow);
                 container.appendChild(newRow);
-                itemIndex++;
             });
 
-            function updateRow(row) {
-                const price = parseFloat(row.querySelector('.unit-price').value) || 0;
-                const qty = parseInt(row.querySelector('.qty-input').value) || 1;
-                row.querySelector('.subtotal').textContent = '$' + (price * qty).toFixed(2);
+            function numericOnly(el, decimals) {
+                el.addEventListener('input', function() {
+                    if (decimals) {
+                        let v = this.value.replace(/[^0-9.]/g, '');
+                        const parts = v.split('.');
+                        v = parts.length > 1 ? parts[0] + '.' + parts.slice(1).join('').slice(0, 2) : v;
+                        this.value = v;
+                    } else {
+                        this.value = this.value.replace(/[^0-9]/g, '');
+                    }
+                    recalcRow(this.closest('.item-row'));
+                });
+            }
+
+            function recalcRow(row) {
+                const qty = parseInt(row.querySelector('.qty-input').value) || 0;
+                const unitPrice = parseFloat(row.querySelector('.unit-price-input').value) || 0;
+                const total = qty * unitPrice;
+                row.querySelector('.total-price-input').value = total ? total.toFixed(2) : '';
+                const subtotalEl = row.querySelector('.subtotal');
+                subtotalEl.textContent = '₹' + total.toFixed(2);
+                subtotalEl.dataset.value = total.toFixed(2);
                 updateTotals();
+            }
+
+            function round2(v) { return Math.round(v * 100) / 100; }
+
+            function inWords(num) {
+                num = round2(num);
+                const rupees = Math.floor(num);
+                const paise = Math.round((num - rupees) * 100);
+                const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+                const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+                const two = n => n < 20 ? ones[n] : (tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : ''));
+                const conv = n => {
+                    if (n === 0) return 'Zero';
+                    const parts = [];
+                    const cr = Math.floor(n / 10000000); n %= 10000000;
+                    const lk = Math.floor(n / 100000); n %= 100000;
+                    const th = Math.floor(n / 1000); n %= 1000;
+                    const hu = Math.floor(n / 100); n %= 100;
+                    if (cr) parts.push(conv(cr) + ' Crore');
+                    if (lk) parts.push(two(lk) + ' Lakh');
+                    if (th) parts.push(two(th) + ' Thousand');
+                    if (hu) parts.push(ones[hu] + ' Hundred');
+                    if (n) parts.push(two(n));
+                    return parts.join(' ');
+                };
+                let w = conv(rupees) + ' Rupees';
+                if (paise > 0) w += ' And ' + two(paise) + ' Paise';
+                return w + ' Only';
+            }
+
+            function applyTaxes(totalAmount) {
+                const taxType = document.querySelector('input[name="tax_type"]:checked')?.value || 'igst';
+                const igst = taxType === 'igst' ? round2(totalAmount * 0.18) : 0;
+                const sgst = taxType === 'sgst_cgst' ? round2(totalAmount * 0.09) : 0;
+                const cgst = taxType === 'sgst_cgst' ? round2(totalAmount * 0.09) : 0;
+                const taxAmount = round2(igst + sgst + cgst);
+                return { taxType, igst, sgst, cgst, taxAmount, grandTotal: round2(totalAmount + taxAmount) };
             }
 
             function updateTotals() {
                 let totalItems = 0;
-                let grandTotal = 0;
+                let totalAmount = 0;
                 document.querySelectorAll('.item-row').forEach(row => {
-                    const qty = parseInt(row.querySelector('.qty-input').value) || 0;
-                    const price = parseFloat(row.querySelector('.unit-price').value) || 0;
-                    totalItems += qty;
-                    grandTotal += qty * price;
+                    totalItems += parseInt(row.querySelector('.qty-input').value) || 0;
+                    totalAmount += parseFloat(row.querySelector('.subtotal').dataset.value || 0);
                 });
+                const t = applyTaxes(totalAmount);
                 document.getElementById('totalItems').textContent = totalItems;
-                document.getElementById('grandTotal').textContent = '$' + grandTotal.toFixed(2);
+                document.getElementById('totalAmount').textContent = '₹' + totalAmount.toFixed(2);
+                document.getElementById('igstRow').style.display = t.taxType === 'igst' ? '' : 'none';
+                document.getElementById('sgstRow').style.display = t.taxType === 'sgst_cgst' ? '' : 'none';
+                document.getElementById('cgstRow').style.display = t.taxType === 'sgst_cgst' ? '' : 'none';
+                document.getElementById('igstAmount').textContent = '₹' + t.igst.toFixed(2);
+                document.getElementById('sgstAmount').textContent = '₹' + t.sgst.toFixed(2);
+                document.getElementById('cgstAmount').textContent = '₹' + t.cgst.toFixed(2);
+                document.getElementById('grandTotal').textContent = '₹' + t.grandTotal.toFixed(2);
+                document.getElementById('amountInWords').textContent = inWords(t.grandTotal);
+            }
+
+            document.querySelectorAll('.tax-type').forEach(r => r.addEventListener('change', updateTotals));
+
+            function bindRow(row) {
+                numericOnly(row.querySelector('.qty-input'), false);
+                numericOnly(row.querySelector('.unit-price-input'), true);
+                numericOnly(row.querySelector('.total-price-input'), true);
+
+                row.querySelector('.product-select').addEventListener('change', function() {
+                    const price = this.selectedOptions[0]?.dataset.price || 0;
+                    row.querySelector('.unit-price-input').value = price ? parseFloat(price).toFixed(2) : '';
+                    recalcRow(row);
+                });
+
+                row.querySelector('.remove-row').onclick = function() {
+                    if (document.querySelectorAll('.item-row').length > 1) {
+                        this.closest('.item-row').remove();
+                        updateTotals();
+                    } else {
+                        alert('At least one item row is required.');
+                    }
+                };
             }
 
             document.querySelectorAll('.item-row').forEach(row => {
-                row.querySelector('.product-select').onchange = function() {
-                    const price = this.selectedOptions[0].dataset.price;
-                    row.querySelector('.unit-price').value = price;
-                    updateRow(row);
-                };
-                row.querySelector('.qty-input').oninput = function() {
-                    updateRow(row);
-                };
-                row.querySelector('.unit-price').oninput = function() {
-                    updateRow(row);
-                };
-                row.querySelector('.remove-row').onclick = function() {
-                    row.remove();
-                    updateTotals();
-                };
+                bindRow(row);
+                recalcRow(row);
             });
 
             // Attachment Dropzone
@@ -273,6 +491,35 @@
                 fileInput.files = dt.files;
                 renderFiles();
             };
+        </script>
+
+        <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+        <script>
+            const notesInput = document.getElementById('notes-input');
+            const quill = new Quill('#notes-editor', {
+                theme: 'snow',
+                placeholder: 'Terms, delivery, payment conditions...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }, { 'font': [] }],
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        [{ 'align': [] }],
+                        ['link'],
+                        ['clean']
+                    ]
+                }
+            });
+            quill.root.style.minHeight = '40px';
+            // keep hidden input synced for validation/submit
+            quill.on('text-change', function () {
+                notesInput.value = quill.root.innerHTML === '<p><br></p>' ? '' : quill.root.innerHTML;
+            });
+            // sync on submit too (covers content typed but not triggering change)
+            document.querySelector('form').addEventListener('submit', function () {
+                notesInput.value = quill.root.innerHTML === '<p><br></p>' ? '' : quill.root.innerHTML;
+            });
         </script>
     @endpush
 @endsection

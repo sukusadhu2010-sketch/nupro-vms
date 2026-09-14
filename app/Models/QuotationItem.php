@@ -16,11 +16,21 @@ class QuotationItem extends Model
         'unit_price',
         'total_price',
         'notes',
+        'payment_methods',
+        'moc',
+        'mfg_spec',
+        'trim',
+        'operation',
+        'end_connection',
+        'rating',
+        'media',
+        'remarks',
     ];
 
     protected $casts = [
         'unit_price' => 'decimal:2',
         'total_price' => 'decimal:2',
+        'payment_methods' => 'array',
     ];
 
     public function quotation()

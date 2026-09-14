@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\EnquiryController;
 use App\Http\Controllers\Admin\QuotationController;
 use App\Http\Controllers\Admin\SalesOrderController;
@@ -33,6 +34,20 @@ Route::middleware(['auth'])->group(function () {
     Route::post('enquiries/{enquiry}/update-status', [EnquiryController::class, 'updateStatus'])->name('enquiries.update-status');
 });
 
+// Quotation Form (Structured Quotation / Offer Document)
+use App\Http\Controllers\Admin\QuotationFormController;
+Route::middleware(['auth'])->group(function () {
+    Route::get('quotation-forms', [QuotationFormController::class, 'index'])->name('quotation-forms.index');
+    Route::get('quotation-forms/create', [QuotationFormController::class, 'create'])->name('quotation-forms.create');
+    Route::post('quotation-forms', [QuotationFormController::class, 'store'])->name('quotation-forms.store');
+    Route::get('quotation-forms/{quotationForm}/edit', [QuotationFormController::class, 'edit'])->name('quotation-forms.edit');
+    Route::put('quotation-forms/{quotationForm}', [QuotationFormController::class, 'update'])->name('quotation-forms.update');
+    Route::get('quotation-forms/{quotationForm}', [QuotationFormController::class, 'show'])->name('quotation-forms.show');
+    Route::delete('quotation-forms/{quotationForm}', [QuotationFormController::class, 'destroy'])->name('quotation-forms.destroy');
+    Route::get('quotation-forms/{quotationForm}/print', [QuotationFormController::class, 'print'])->name('quotation-forms.print');
+    Route::post('quotation-forms/{quotationForm}/finalize', [QuotationFormController::class, 'finalize'])->name('quotation-forms.finalize');
+});
+
 // Quotation Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('quotations', [QuotationController::class, 'index'])->name('quotations.index');
@@ -48,6 +63,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
 });
 
+// Financial Year & Organization Settings
+use App\Http\Controllers\Admin\FinancialYearController;
+use App\Http\Controllers\Admin\OrganizationSettingController;
+Route::middleware(['auth'])->group(function () {
+    Route::resource('financial-years', FinancialYearController::class)
+        ->parameters(['financial-years' => 'financial_year'])->except(['show']);
+    Route::post('financial-years/{financial_year}/activate', [FinancialYearController::class, 'activate'])->name('financial-years.activate');
+    Route::get('organization', [OrganizationSettingController::class, 'edit'])->name('organization.edit');
+    Route::put('organization', [OrganizationSettingController::class, 'update'])->name('organization.update');
+});
+
 // Admin Routes
 Route::middleware(['auth'])->group(function () {
   //  Route::resource('admin.enquiries', \App\Http\Controllers\Admin\EnquiryController::class);
@@ -58,6 +84,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('customers/{customer}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
     Route::resource('products', ProductController::class);
     Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+    Route::resource('product-categories', ProductCategoryController::class);
+    Route::post('product-categories/{product_category}/toggle-status', [ProductCategoryController::class, 'toggleStatus'])->name('product-categories.toggle-status');
     Route::resource('units', UnitController::class);
     Route::post('units/{unit}/toggle-status', [UnitController::class, 'toggleStatus'])->name('units.toggle-status');
 });

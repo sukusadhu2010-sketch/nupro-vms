@@ -3,6 +3,26 @@
 @section('title', 'Product Details - Admin')
 
 @section('content')
+    <style>
+        /* Contrast fixes for the product show page (theme-aware) */
+        .card-body p,
+        .card-body .mb-1,
+        .card-body .mb-0 {
+            color: var(--text-primary);
+        }
+        .card-header.bg-light h6 {
+            color: var(--text-primary);
+        }
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        code {
+            color: var(--info);
+            background-color: rgba(59, 130, 246, 0.1);
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem;
+        }
+    </style>
     <div class="container-fluid py-4">
         <div class="row">
             <!-- Product Profile -->
@@ -30,24 +50,10 @@
 
                     <div class="card-body p-5">
                         <div class="row g-4">
-                            <!-- Product Image & Main Info -->
+                            <!-- Main Info -->
                             <div class="col-12">
                                 <div class="row align-items-center">
-                                    <div class="col-md-3 text-center mb-4 mb-md-0">
-                                        <div class="position-relative">
-                                            @if ($product->image)
-                                                <img src="{{ Storage::url($product->image) }}"
-                                                    class="rounded-4 shadow-lg img-fluid mx-auto d-block"
-                                                    style="max-height: 300px; width: 100%; object-fit: cover;">
-                                            @else
-                                                <div class="bg-light rounded-4 d-flex align-items-center justify-content-center"
-                                                    style="height: 300px; width: 100%;">
-                                                    <i class="fas fa-image fa-5x text-muted"></i>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-md-9">
+                                    <div class="col-md-12">
                                         <div class="d-flex justify-content-between align-items-start mb-4">
                                             <div>
                                                 <h2 class="mb-2 fw-bold">{{ $product->name }}</h2>
@@ -84,9 +90,7 @@
                                                             class="fas fa-{{ $config['icon'] }} me-2"></i>{{ ucfirst($product->status) }}
                                                     </span>
                                                 </div>
-                                                <p class="text-muted mb-1"><i
-                                                        class="fas fa-building me-2 text-info"></i>{{ $product->vendor->company }}
-                                                </p>
+
                                                 <p class="mb-1"><i class="fas fa-tag me-2 text-primary"></i>SKU:
                                                     <code>{{ $product->sku }}</code>
                                                 </p>
@@ -101,11 +105,6 @@
                                                         {{ $product->category }}</p>
                                                 @endif
                                             </div>
-                                            <div class="text-end">
-                                                <div class="display-4 fw-bold text-success mb-1">
-                                                    ${{ number_format($product->price, 2) }}</div>
-                                                <small class="text-muted">Price</small>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -117,8 +116,8 @@
                                     <div class="col-lg-8">
                                         <div class="card border-0">
                                             <div class="card-header bg-light">
-                                                <h6 class="mb-0 fw-bold text-info">
-                                                    <i class="fas fa-align-left me-2"></i>Description
+                                                <h6 class="mb-0 fw-bold text-dark">
+                                                    <i class="fas fa-align-left me-2 text-info"></i>Description
                                                 </h6>
                                             </div>
                                             <div class="card-body">
@@ -133,8 +132,8 @@
                                             <div class="col-12">
                                                 <div class="card border-0 h-100">
                                                     <div class="card-header bg-light">
-                                                        <h6 class="mb-0 fw-bold text-warning">
-                                                            <i class="fas fa-warehouse me-2"></i>Inventory
+                                                        <h6 class="mb-0 fw-bold text-dark">
+                                                            <i class="fas fa-warehouse me-2 text-warning"></i>Inventory
                                                         </h6>
                                                     </div>
                                                     <div class="card-body text-center">
@@ -159,8 +158,8 @@
                             <div class="col-12">
                                 <div class="card border-0">
                                     <div class="card-header bg-light">
-                                        <h6 class="mb-0 fw-bold text-secondary">
-                                            <i class="fas fa-history me-2"></i>Activity
+                                        <h6 class="mb-0 fw-bold text-dark">
+                                            <i class="fas fa-history me-2 text-secondary"></i>Activity
                                         </h6>
                                     </div>
                                     <div class="card-body">
@@ -202,8 +201,8 @@
             <div class="col-xl-4">
                 <div class="card shadow-lg border-0 rounded-4 h-100">
                     <div class="card-header bg-white">
-                        <h6 class="mb-0 fw-bold text-info">
-                            <i class="fas fa-bolt me-2"></i>Quick Actions
+                        <h6 class="mb-0 fw-bold text-dark">
+                            <i class="fas fa-bolt me-2 text-info"></i>Quick Actions
                         </h6>
                     </div>
                     <div class="card-body">
