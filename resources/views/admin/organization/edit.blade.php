@@ -44,7 +44,7 @@
                     <label class="form-label fw-bold">Logo</label>
                     <div class="d-flex align-items-start gap-4">
                         @if ($organization->logo_path)
-                            <img src="{{ $organization->logo_url }}" alt="Logo"
+                            <img src="{{ asset($organization->logo_url) }}" alt="Logo"
                                 style="max-height: 100px; max-width: 300px;" class="border rounded p-2 bg-white">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="remove_logo" value="1" id="removeLogo">
@@ -58,6 +58,38 @@
                         class="form-control mt-2 @error('logo') is-invalid @enderror">
                     <small class="text-muted">PNG / JPG / SVG, max 2MB. Recommended ~300x100px.</small>
                     @error('logo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-bold">Print Assets</label>
+                    <small class="text-muted d-block mb-2">Used when printing quotations, invoices and other documents.</small>
+                    <div class="row g-3">
+                        @foreach ([
+                            'seal' => ['Seal', 'seal_path', 'seal_url', 'Round stamp/seal, ~300x300px transparent PNG'],
+                            'signature' => ['Digital Signature', 'signature_path', 'signature_url', 'Authorized signatory signature, ~300x120px transparent PNG'],
+                            'letterhead' => ['Letter Head', 'letterhead_path', 'letterhead_url', 'Full-width letter head, ~1700x300px'],
+                        ] as $input => [$label, $column, $urlColumn, $hint])
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">{{ $label }}</label>
+                                <div class="border rounded p-2 bg-light text-center" style="min-height: 90px;">
+                                    @if ($organization->{$column})
+                                        <img src="{{ asset($organization->{$urlColumn}) }}" alt="{{ $label }}"
+                                            style="max-height: 80px; max-width: 100%;" class="bg-white">
+                                        <div class="form-check mt-1">
+                                            <input class="form-check-input" type="checkbox" name="remove_{{ $input }}" value="1" id="remove_{{ $input }}">
+                                            <label class="form-check-label small" for="remove_{{ $input }}">Remove</label>
+                                        </div>
+                                    @else
+                                        <div class="text-muted small py-3">Not uploaded</div>
+                                    @endif
+                                </div>
+                                <input type="file" name="{{ $input }}" accept=".png,.jpg,.jpeg,.svg"
+                                    class="form-control mt-2 @error($input) is-invalid @enderror">
+                                <small class="text-muted">{{ $hint }}</small>
+                                @error($input)<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
 
                 <div class="col-md-6">

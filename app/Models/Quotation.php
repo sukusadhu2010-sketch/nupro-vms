@@ -26,11 +26,17 @@ class Quotation extends Model
         'amount_in_words',
         // Acknowledgement & Product Specification
         'acknowledgement',
+        'customer_information',
+        'kind_attention',
         'product_spec',
         // Terms & Conditions
         'delivery_terms',
         'warranty_terms',
         'payment_terms',
+        'prices_basis',
+        'prices_basis_option',
+        'payment_term_option',
+        'payment_term_text',
         'inspection_vendor_scope',
         'inspection_third_party_scope',
         // Notes & Signatory
@@ -49,6 +55,7 @@ class Quotation extends Model
         'tax_amount' => 'decimal:2',
         'valid_until' => 'date',
         'attachments' => 'array',
+        'payment_term_text' => 'array',
     ];
 
     /** Grand total = quantity amount + tax amount */

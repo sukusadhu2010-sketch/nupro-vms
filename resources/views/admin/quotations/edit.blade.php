@@ -65,6 +65,17 @@
                                                 placeholder="With reference to your enquiry...">{{ old('acknowledgement', $quotation->acknowledgement) }}</textarea>
                                         </div>
                                         <div class="col-12">
+                                            <label class="form-label fw-semibold">Customer Information</label>
+                                            <textarea name="customer_information" class="form-control" rows="3"
+                                                placeholder="Customer address, contact and other details...">{{ old('customer_information', $quotation->customer_information) }}</textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Kind Atten.</label>
+                                            <input type="text" name="kind_attention" class="form-control"
+                                                placeholder="e.g. Mr. Sharma — Purchase Department"
+                                                value="{{ old('kind_attention', $quotation->kind_attention) }}">
+                                        </div>
+                                        <div class="col-12">
                                             <label class="form-label fw-semibold">Product Specification / Type <span class="text-danger">*</span></label>
                                             <input type="text" name="product_spec" class="form-control" required
                                                 placeholder="e.g. SLUICE GATE / OPEN CHANNEL GATE"
@@ -80,12 +91,13 @@
                                     <div class="item-row row mb-3 border p-3 rounded bg-light">
                                         <div class="col-md-3">
                                             <label class="form-label fw-bold small">Product Name <span class="text-danger">*</span></label>
-                                            <select class="form-select product-select"
-                                                name="items[{{ $index }}][product_id]" required>
-                                                @foreach (App\Models\Product::with('vendor')->where('status', 'active')->get() as $p)
+                                            <select class="form-select product-select select2"
+                                                name="items[{{ $index }}][product_id]" required data-placeholder="Select Product">
+                                                <option value=""></option>
+                                                @foreach (App\Models\Product::with('productCategory')->where('status', 'active')->get() as $p)
                                                     <option value="{{ $p->id }}" data-price="{{ $p->price }}"
                                                         {{ $p->id == $item->product_id ? 'selected' : '' }}>
-                                                        {{ $p->name }} - ₹{{ number_format($p->price, 2) }}
+                                                        {{ $p->name }} - {{ $p->productCategory?->name ?? $p->category ?? 'General' }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -106,23 +118,9 @@
                                                 name="items[{{ $index }}][total_price]" value="{{ $item->total_price }}" readonly>
                                         </div>
                                         <div class="col-12 mt-2">
-                                            <label class="form-label fw-bold small mb-1">LC / Credit / Advance / PIC / PDC / Proforma Invoice</label>
-                                            <div class="d-flex flex-wrap gap-3">
-                                                @foreach (['LC' => 'LC', 'Credit' => 'Credit', 'Advance' => 'Advance', 'PIC' => 'PIC', 'PDC' => 'PDC', 'Proforma Invoice' => 'Proforma Invoice'] as $key => $label)
-                                                    <div class="form-check">
-                                                        <input class="form-check-input pay-method" type="checkbox"
-                                                            name="items[{{ $index }}][payment_methods][]" value="{{ $key }}"
-                                                            id="pay_{{ $index }}_{{ $loop->index }}"
-                                                            {{ in_array($key, $item->payment_methods ?? []) ? 'checked' : '' }}>
-                                                        <label class="form-check-label small" for="pay_{{ $index }}_{{ $loop->index }}">{{ $label }}</label>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                        <div class="col-12 mt-2">
                                             <div class="description-entry border rounded-3 p-3 bg-white">
                                                 <div class="mb-2">
-                                                    <strong class="small"><i class="fas fa-list-ul me-1 text-warning"></i>Description</strong>
+                                                    <strong class="small"><i class="fas fa-list-ul me-1 text-warning"></i>Additional Informations</strong>
                                                     <small class="text-muted ms-2">(* marked fields are mandatory)</small>
                                                 </div>
                                                 <div class="row g-2">
@@ -152,7 +150,7 @@
                                 <i class="fas fa-plus"></i> Add Item
                             </button>
 
-                            
+
 
                             <!-- ============ TERMS & CONDITIONS ============ -->
                             <div class="card shadow-sm border-0 rounded-4 mb-4">
@@ -173,10 +171,39 @@
                                                 placeholder="e.g. 18 months from supply or 12 months from commissioning"
                                                 value="{{ old('warranty_terms', $quotation->warranty_terms) }}">
                                         </div>
-                                        <div class="col-12">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">PRICES BASIS</label>
+                                            <div class="d-flex gap-2">
+                                                <input type="text" name="prices_basis" class="form-control"
+                                                    placeholder="e.g. Prices are based on..." value="{{ old('prices_basis', $quotation->prices_basis) }}">
+                                                <div class="d-flex flex-column justify-content-center gap-1">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="prices_basis_option" value="ex-works" id="pricesExWorksEdit"
+                                                            {{ old('prices_basis_option', $quotation->prices_basis_option) === 'ex-works' ? 'checked' : '' }}>
+                                                        <label class="form-check-label small" for="pricesExWorksEdit">Ex-Workers</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="prices_basis_option" value="transported-godown" id="pricesGodownEdit"
+                                                            {{ old('prices_basis_option', $quotation->prices_basis_option) === 'transported-godown' ? 'checked' : '' }}>
+                                                        <label class="form-check-label small" for="pricesGodownEdit">Transported Godown</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
                                             <label class="form-label fw-semibold">Payment Terms <span class="text-danger">*</span></label>
-                                            <textarea name="payment_terms" class="form-control" rows="3" required
-                                                placeholder="e.g. 30% advance with PO, 60% before dispatch, 10% after commissioning">{{ old('payment_terms', $quotation->payment_terms) }}</textarea>
+                                            @foreach (['LC / Credit' => 'lc_credit', 'Advance + PI' => 'advance_pi', 'PDC' => 'pdc', 'Proforma Invoice' => 'proforma_invoice'] as $label => $key)
+                                                <div class="d-flex gap-2 align-items-center mb-2">
+                                                    <div class="form-check" style="min-width: 160px;">
+                                                        <input class="form-check-input payment-term-option" type="radio" name="payment_term_option" value="{{ $key }}"
+                                                            id="payterm_edit_{{ $key }}" {{ old('payment_term_option', $quotation->payment_term_option) === $key ? 'checked' : '' }}>
+                                                        <label class="form-check-label small" for="payterm_edit_{{ $key }}">{{ $label }}</label>
+                                                    </div>
+                                                    <input type="text" class="form-control form-control-sm payment-term-text"
+                                                        name="payment_term_text[{{ $key }}]" placeholder="Details for {{ $label }}..."
+                                                        value="{{ old('payment_term_text.' . $key, $quotation->payment_term_text[$key] ?? '') }}">
+                                                </div>
+                                            @endforeach
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-semibold">Inspection — Vendor Scope</label>
@@ -347,6 +374,12 @@
                 newRow.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
                 newRow.querySelectorAll('input[type=text]:not(.qty-input):not(.unit-price-input):not(.total-price-input), textarea').forEach(el => el.value = '');
 
+                // Re-init Select2 on the cloned select
+                const clonedSelect = newRow.querySelector('.product-select');
+                if (window.jQuery && clonedSelect) {
+                    jQuery(clonedSelect).select2({ width: '100%', placeholder: 'Select Product', allowClear: true });
+                }
+
                 bindRow(newRow);
                 container.appendChild(newRow);
             });
@@ -502,6 +535,21 @@
                 fileInput.files = dt.files;
                 renderFiles();
             };
+        </script>
+
+        <script>
+            // Initialize Select2 on all dropdowns with search
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.jQuery) {
+                    jQuery('select.select2').each(function() {
+                        jQuery(this).select2({
+                            width: '100%',
+                            placeholder: jQuery(this).data('placeholder') || 'Select',
+                            allowClear: true
+                        });
+                    });
+                }
+            });
         </script>
 
         <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">

@@ -37,7 +37,7 @@ class EnquiryController extends Controller
     public function create()
     {
         $customers = Customer::with('user')->where('status', 'active')->get();
-        $products = Product::with('vendor')->where('status', 'active')->get();
+        $products = Product::with('productCategory')->where('status', 'active')->get();
         return view('admin.enquiries.create', compact('customers', 'products'));
     }
 
@@ -124,6 +124,12 @@ class EnquiryController extends Controller
 
     public function edit(Enquiry $enquiry)
     {
+        // Only pending enquiries can be edited — quoted/closed are locked
+        if ($enquiry->status !== 'pending') {
+            return redirect()->route('enquiries.show', $enquiry)
+                ->with('error', 'This enquiry has been quoted and can no longer be edited.');
+        }
+
         $enquiry->load(['items.product.vendor', 'customer']);
 
         $productsForForm = $enquiry->items->map(function ($item) {
@@ -149,12 +155,17 @@ class EnquiryController extends Controller
         $enquiry->products = $productsForForm;
 
         $customers = Customer::with('user')->where('status', 'active')->get();
-        $products = Product::with('vendor')->where('status', 'active')->get();
+        $products = Product::with('productCategory')->where('status', 'active')->get();
         return view('admin.enquiries.edit', compact('enquiry', 'customers', 'products'));
     }
 
     public function update(Request $request, Enquiry $enquiry)
     {
+        if ($enquiry->status !== 'pending') {
+            return redirect()->route('enquiries.show', $enquiry)
+                ->with('error', 'This enquiry has been quoted and can no longer be edited.');
+        }
+
         //return $request->all();
         $request->validate([
             'customer_id' => 'required|exists:customers,id',

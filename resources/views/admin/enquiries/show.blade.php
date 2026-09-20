@@ -40,13 +40,6 @@
                                 <small class="">{{ $enquiry->customer?->user?->email ?? 'No email available' }}</small>
                             </div>
                             <div class="col-md-6 text-end">
-                                Total Amount: <strong
-                                    class="text-success">₹{{ number_format($enquiry->total_amount, 2) }}</strong>
-                                @if (($enquiry->tax_amount ?? 0) > 0)
-                                    <br><small>Tax: ₹{{ number_format($enquiry->tax_amount, 2) }} |
-                                    Grand Total: <strong
-                                        class="text-success">₹{{ number_format($enquiry->total_amount + $enquiry->tax_amount, 2) }}</strong></small>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -88,8 +81,6 @@
                                             <tr>
                                                 <th>Product</th>
                                                 <th class="text-center">Qty</th>
-                                                <th class="text-end">Est. Price</th>
-                                                <th class="text-end">Subtotal</th>
                                                 <th>Notes</th>
                                             </tr>
                                         </thead>
@@ -103,12 +94,6 @@
                                                             class="">{{ $item->product->vendor?->company ?? 'No Vendor' }}</small>
                                                     </td>
                                                     <td class="text-center fw-bold">{{ $item->quantity }}</td>
-                                                    <td class="text-end">
-                                                        ₹{{ number_format($item->estimated_price ?? $item->product->price, 2) }}
-                                                    </td>
-                                                    <td class="text-end fw-bold text-success">
-                                                        ₹{{ number_format($item->quantity * ($item->estimated_price ?? $item->product->price), 2) }}
-                                                    </td>
                                                     <td>
                                                         @if ($item->notes)
                                                             <small class="">{{ $item->notes }}</small>
@@ -117,7 +102,7 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="5" class="text-center py-4 ">No products</td>
+                                                    <td colspan="3" class="text-center py-4 ">No products</td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
@@ -289,9 +274,11 @@
                             <i class="fas fa-file-invoice-dollar me-2"></i>Convert to Quote   <span class="badge bg-primary"> {{ $enquiry->quotations->count() }}</span>
                         </a>
 
+                        @if($enquiry->status == 'pending')
                         <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-warning btn-lg w-100 mb-2">
                             <i class="fas fa-edit me-2"></i>Edit Enquiry
                         </a>
+                        @endif
                         @endif
                         <a href="{{ route('enquiries.index') }}" class="btn btn-outline-secondary btn-lg w-100">
                             <i class="fas fa-arrow-left me-2"></i>Back to List

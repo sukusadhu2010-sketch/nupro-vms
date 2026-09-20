@@ -32,230 +32,251 @@
 
         <div class="row g-4">
             <div class="col-lg-8">
-                <!-- Enquiry Reference -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light">
-                        <h6 class="mb-0"><i class="fas fa-link me-2"></i>Linked Enquiry</h6>
+                <!-- ============ QUOTATION DETAILS ============ -->
+                <div class="card shadow-lg">
+                    <div class="card-header">
+                        <h6 class="mb-0 fw-bold">Quotation Details</h6>
                     </div>
-                    <div class="card-body text-white">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Enquiry #{{ $quotation->enquiry->id }}</strong><br>
-                                <small
-                                    class="">{{  $quotation->enquiry->customer->name }}</small>
+                    <div class="card-body">
+
+                        <!-- Header fields -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Quote Number</label>
+                                <p class="form-control bg-light">{{ $quotation->quote_number }}</p>
                             </div>
-                            <div class="col-md-6 text-end">
-                                <a href="{{ route('enquiries.show', $quotation->enquiry) }}"
-                                    class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-eye me-1"></i>View Enquiry
-                                </a>
+                            <div class="col-md-2">
+                                <label class="form-label fw-bold">Version</label>
+                                <p class="form-control bg-light">{{ $quotation->version }}</p>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Valid Until</label>
+                                <p class="form-control bg-light">{{ $quotation->valid_until ? $quotation->valid_until->format('Y-m-d') : 'Not specified' }}</p>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Customer</label>
+                                <p class="form-control bg-light">{{ $quotation->enquiry->customer->company ?? $quotation->enquiry->customer->name }}</p>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Quotation Items -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Quote Items</h6>
-                        <span class="badge bg-light text-dark">{{ $quotation->items->count() }} items</span>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Product</th>
-                                        <th class="text-center">Qty</th>
-                                        <th class="text-end">Unit Price</th>
-                                        <th class="text-end">Total</th>
-                                        <th>Notes</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($quotation->items as $i => $item)
-                                        <tr>
-                                            <td>{{ $i + 1 }}</td>
-                                            <td>
-                                                <strong>{{ $item->product->name }}</strong>
-                                                <br><small class="">SKU: {{ $item->product->sku }}</small>
-                                                <br><small class="">Vendor:
-                                                    {{ $item->product->vendor?->name }}</small>
-                                            </td>
-                                            <td class="text-center fw-bold">{{ $item->quantity }}</td>
-                                            <td class="text-end">₹{{ number_format($item->unit_price, 2) }}</td>
-                                            <td class="text-end fw-bold text-success">
-                                                ₹{{ number_format($item->total_price, 2) }}</td>
-                                            <td>
-                                                @if ($item->notes)
-                                                    <small class="">{{ $item->notes }}</small>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr><td colspan="6">
-                                            <div class="col-12 mt-2">
-                                            <label class="form-label fw-bold small mb-1">LC / Credit / Advance / PIC / PDC / Proforma Invoice</label>
-                                            <div class="d-flex flex-wrap gap-3">
-                                                @foreach (['LC' => 'LC', 'Credit' => 'Credit', 'Advance' => 'Advance', 'PIC' => 'PIC', 'PDC' => 'PDC', 'Proforma Invoice' => 'Proforma Invoice'] as $key => $label)
-                                                    <div class="form-check">
-                                                        <input class="form-check-input pay-method" type="checkbox"
-                                                            name="items[{{ $i }}][payment_methods][]" value="{{ $key }}"
-                                                            id="pay_{{ $i }}_{{ $loop->index }}"
-                                                            {{ in_array($key, $item->payment_methods ?? []) ? 'checked' : '' }}>
-                                                        <label class="form-check-label small" for="pay_{{ $i }}_{{ $loop->index }}">{{ $label }}</label>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                        <div class="col-12 mt-2">
-                                            <label class="form-label fw-bold small mb-1">Description</label>
-                                            <div class="row g-2">
-                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">MOC</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][moc]" value="{{ $item->moc ?? '' }}" readonly></div>
-                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">MFG Spec</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][mfg_spec]" value="{{ $item->mfg_spec ?? '' }}" readonly></div>
-                                                <div class="col-md-2"><label class="form-label fw-bold small mb-1">Trim</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][trim]" value="{{ $item->trim ?? '' }}" readonly></div>
-                                                <div class="col-md-2"><label class="form-label fw-bold small mb-1">Operation</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][operation]" value="{{ $item->operation ?? '' }}" readonly></div>
-                                                <div class="col-md-2"><label class="form-label fw-bold small mb-1">End Connection</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][end_connection]" value="{{ $item->end_connection ?? '' }}" readonly></div>
-                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">Rating</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][rating]" value="{{ $item->rating ?? '' }}" readonly></div>
-                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">Media</label><input type="text" class="form-control form-control-sm bg-light" name="items[{{ $i }}][media]" value="{{ $item->media ?? '' }}" readonly></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-12 mt-2">
-                                            <label class="form-label fw-bold small">Remarks</label>
-                                            <textarea class="form-control" name="items[{{ $i }}][remarks]" rows="2" placeholder="Remarks">{{ $item->remarks ?? $item->notes }}</textarea>
-                                        </div>
-                                        </td></tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot class="table-group-divider">
-                                    <tr>
-                                        <td colspan="4" class="text-end fw-bold">Subtotal (Quantity Amount):</td>
-                                        <td class="text-end fw-bold">
-                                            ₹{{ number_format($quotation->total_amount, 2) }}</td>
-                                        <td></td>
-                                    </tr>
-                                    @if (($quotation->tax_amount ?? 0) > 0)
-                                        <tr>
-                                            <td colspan="4" class="text-end">Tax
-                                                @if ($quotation->tax_type === 'igst') (IGST @ {{ $quotation->igst }}%)
-                                                @else (CGST @ {{ $quotation->cgst }}% + SGST @ {{ $quotation->sgst }}%)
-                                                @endif</td>
-                                            <td class="text-end">₹{{ number_format($quotation->tax_amount, 2) }}</td>
-                                            <td></td>
-                                        </tr>
-                                    @endif
-                                    <tr class="table-active">
-                                        <td colspan="4" class="text-end h5 fw-bold">Grand Total:</td>
-                                        <td class="text-end h4 fw-bold text-success">
-                                            ₹{{ number_format($quotation->total_amount + ($quotation->tax_amount ?? 0), 2) }}</td>
-                                        <td></td>
-                                    </tr>
-                                    @if ($quotation->amount_in_words)
-                                        <tr>
-                                            <td colspan="6" class="fst-italic">
-                                                <small><strong>Amount in Words:</strong> {{ $quotation->amount_in_words }}</small>
-                                            </td>
-                                        </tr>
-                                    @endif
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                @if ($quotation->acknowledgement || $quotation->product_spec)
-                    <div class="card shadow-sm">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="fas fa-align-left me-2"></i>Acknowledgement & Product Specification</h6>
-                        </div>
-                        <div class="card-body text-white">
-                            @if ($quotation->acknowledgement)
-                                <p class="mb-2">{{ $quotation->acknowledgement }}</p>
-                            @endif
-                            @if ($quotation->product_spec)
-                                <div><small class=" d-block">Product Specification / Type</small><strong>{{ $quotation->product_spec }}</strong></div>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-
-                @if ($quotation->delivery_terms || $quotation->warranty_terms || $quotation->payment_terms || $quotation->inspection_vendor_scope || $quotation->inspection_third_party_scope)
-                    <div class="card shadow-sm mt-3">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="fas fa-file-contract me-2"></i>Terms & Conditions</h6>
-                        </div>
-                        <div class="card-body">
-                            <dl class="row mb-0">
-                                @if ($quotation->delivery_terms)
-                                    <dt class="col-sm-4">Delivery Terms</dt><dd class="col-sm-8">{{ $quotation->delivery_terms }}</dd>
-                                @endif
-                                @if ($quotation->warranty_terms)
-                                    <dt class="col-sm-4">Warranty Terms</dt><dd class="col-sm-8">{{ $quotation->warranty_terms }}</dd>
-                                @endif
-                                @if ($quotation->payment_terms)
-                                    <dt class="col-sm-4">Payment Terms</dt><dd class="col-sm-8">{!! nl2br(e($quotation->payment_terms)) !!}</dd>
-                                @endif
-                                @if ($quotation->inspection_vendor_scope)
-                                    <dt class="col-sm-4">Inspection — Vendor Scope</dt><dd class="col-sm-8">{!! nl2br(e($quotation->inspection_vendor_scope)) !!}</dd>
-                                @endif
-                                @if ($quotation->inspection_third_party_scope)
-                                    <dt class="col-sm-4">Inspection — Third Party</dt><dd class="col-sm-8">{!! nl2br(e($quotation->inspection_third_party_scope)) !!}</dd>
-                                @endif
-                            </dl>
-                        </div>
-                    </div>
-                @endif
-
-                @if ($quotation->notes || $quotation->closing_statement || $quotation->signatory_company || $quotation->signatory_designation)
-                    <div class="card shadow-sm mt-3">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="fas fa-pen-nib me-2"></i>Notes & Signatory</h6>
-                        </div>
-                        <div class="card-body ">
-                            @if ($quotation->notes)
-                                <div class="mb-3">{!! \App\Support\HtmlSanitizer::clean($quotation->notes) !!}</div>
-                            @endif
-                            @if ($quotation->closing_statement)
-                                <p class="mb-2 fst-italic">{{ $quotation->closing_statement }}</p>
-                            @endif
-                            @if ($quotation->signatory_company || $quotation->signatory_designation)
-                                <div class="border-top pt-2">
-                                    <strong>{{ $quotation->signatory_company }}</strong>
-                                    @if ($quotation->signatory_designation)<div class="small">{{ $quotation->signatory_designation }}</div>@endif
+                        <!-- ============ ACKNOWLEDGEMENT & PRODUCT SPEC ============ -->
+                        <div class="card shadow-sm border-0 rounded-4 mb-4 mt-4">
+                            <div class="card-header bg-light rounded-top-4">
+                                <h6 class="mb-0 fw-bold"><i class="fas fa-align-left me-2 text-success"></i>Acknowledgement &amp; Product Specification</h6>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Acknowledgement Text</label>
+                                        <p class="form-control bg-light">{{ $quotation->acknowledgement ?? '—' }}</p>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Customer Information</label>
+                                        <p class="form-control bg-light" style="white-space: pre-line;">{{ $quotation->customer_information ?? '—' }}</p>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Kind Atten.</label>
+                                        <p class="form-control bg-light">{{ $quotation->kind_attention ?? '—' }}</p>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Product Specification / Type</label>
+                                        <p class="form-control bg-light">{{ $quotation->product_spec ?? '—' }}</p>
+                                    </div>
                                 </div>
-                            @endif
+                            </div>
+                        </div>
+
+                        <!-- ============ QUOTE ITEMS ============ -->
+                        <label class="form-label fw-bold mb-3">Quote Items <span class="text-danger">*</span></label>
+                        @forelse ($quotation->items as $i => $item)
+                            <div class="row mb-3 border p-3 rounded bg-light item-row">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">Product Name</label>
+                                    <p class="form-control bg-light">
+                                        {{ $item->product->name }} - {{ $item->product->productCategory?->name ?? $item->product->category ?? 'General' }}
+                                    </p>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold small">Quantity</label>
+                                    <p class="form-control bg-light">{{ $item->quantity }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">Unit Price</label>
+                                    <p class="form-control bg-light">₹{{ number_format((float) $item->unit_price, 2) }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">Total Price</label>
+                                    <p class="form-control bg-light">₹{{ number_format((float) $item->total_price, 2) }}</p>
+                                </div>
+
+                                <div class="col-12 mt-2">
+                                    <div class="description-entry border rounded-3 p-3 bg-white">
+                                        <div class="mb-2">
+                                            <strong class="small"><i class="fas fa-list-ul me-1 text-warning"></i>Additional Informations</strong>
+                                        </div>
+                                        <div class="row g-2">
+                                            @foreach (['moc' => '* MOC (Material of Construction)', 'mfg_spec' => '* MFG Spec (Manufacturing Specification)', 'trim' => '* Trim', 'operation' => '* Operation', 'end_connection' => '* End Connection', 'rating' => '* Rating', 'media' => '* Media'] as $field => $descLabel)
+                                                <div class="col-md-6 col-lg-4">
+                                                    <label class="form-label small fw-semibold mb-1">{{ $descLabel }}</label>
+                                                    <p class="form-control form-control-sm bg-light">{{ $item->{$field} ?? '—' }}</p>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 mt-2">
+                                    <label class="form-label fw-bold small">Remarks</label>
+                                    <p class="form-control bg-light" style="white-space: pre-line;">{{ $item->remarks ?? $item->notes ?? '—' }}</p>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-muted">No items on this quotation.</p>
+                        @endforelse
+
+                        <!-- ============ TERMS & CONDITIONS ============ -->
+                        <div class="card shadow-sm border-0 rounded-4 mb-4">
+                            <div class="card-header bg-light rounded-top-4">
+                                <h6 class="mb-0 fw-bold"><i class="fas fa-file-contract me-2 text-danger"></i>Terms &amp; Conditions</h6>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Delivery Terms</label>
+                                        <p class="form-control bg-light">{{ $quotation->delivery_terms ?? '—' }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Warranty Terms</label>
+                                        <p class="form-control bg-light">{{ $quotation->warranty_terms ?? '—' }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">PRICES BASIS</label>
+                                        <p class="form-control bg-light">
+                                            {{ $quotation->prices_basis ?? '—' }}
+                                            @if ($quotation->prices_basis_option)
+                                                <small class="text-muted d-block">Option: {{ $quotation->prices_basis_option === 'ex-works' ? 'Ex-Workers' : 'Transported Godown' }}</small>
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Payment Terms</label>
+                                        <div class="border rounded-3 p-2 bg-white">
+                                            @foreach (['LC / Credit' => 'lc_credit', 'Advance + PI' => 'advance_pi', 'PDC' => 'pdc', 'Proforma Invoice' => 'proforma_invoice'] as $label => $key)
+                                                <div class="d-flex gap-2 align-items-center mb-2">
+                                                    <div class="form-check" style="min-width: 160px;">
+                                                        <input class="form-check-input" type="radio" disabled
+                                                            {{ $quotation->payment_term_option === $key ? 'checked' : '' }}>
+                                                        <label class="form-check-label small">{{ $label }}</label>
+                                                    </div>
+                                                    <span class="form-control form-control-sm bg-light">{{ ($quotation->payment_term_text[$key] ?? '') ?: '—' }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Inspection — Vendor Scope</label>
+                                        <p class="form-control bg-light" style="white-space: pre-line;">{{ $quotation->inspection_vendor_scope ?? '—' }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Inspection — Third Party Scope</label>
+                                        <p class="form-control bg-light" style="white-space: pre-line;">{{ $quotation->inspection_third_party_scope ?? '—' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ============ NOTES & SIGNATORY ============ -->
+                        <div class="card shadow-sm border-0 rounded-4 mb-4">
+                            <div class="card-header bg-light rounded-top-4">
+                                <h6 class="mb-0 fw-bold"><i class="fas fa-pen-nib me-2 text-secondary"></i>Notes &amp; Signatory</h6>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Notes</label>
+                                        <div class="border rounded-3 p-2 bg-light">
+                                            @if ($quotation->notes)
+                                                {!! \App\Support\HtmlSanitizer::clean($quotation->notes) !!}
+                                            @else
+                                                <span class="text-muted">—</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4" style="margin-top: 10px;">
+                                        <label class="form-label fw-semibold">Closing Statement</label>
+                                        <p class="form-control bg-light">{{ $quotation->closing_statement ?? '—' }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Authorized Signatory (Company)</label>
+                                        <p class="form-control bg-light">{{ $quotation->signatory_company ?? '—' }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Designation</label>
+                                        <p class="form-control bg-light">{{ $quotation->signatory_designation ?? '—' }}</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                @endif
+                </div>
             </div>
 
             <div class="col-lg-4">
-                <!-- Quote Info -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-info text-white">
-                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Quote Info</h6>
+                <!-- ============ SUMMARY ============ -->
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header">
+                        <h6 class="mb-0 fw-bold">Summary</h6>
                     </div>
-                    <div class="card-body ">
-                        <div class="mb-3">
-                            <small class=" d-block">Quote Number</small>
-                            <strong>{{ $quotation->quote_number }}</strong>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Items:</span>
+                            <span>{{ $quotation->items->sum('quantity') }}</span>
                         </div>
-                        <div class="mb-3">
-                            <small class=" d-block">Version</small>
-                            <strong>V{{ $quotation->version }}</strong>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Amount (Qty):</span>
+                            <span>₹{{ number_format((float) $quotation->total_amount, 2) }}</span>
                         </div>
-                        <div class="mb-3">
-                            <small class=" d-block">Status</small>
-                            <span
-                                class="badge {{ $quotation->status_badge }} px-3 py-2">{{ $quotation->status_label }}</span>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small mb-1">Tax Details</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" disabled
+                                    {{ ($quotation->tax_type ?? 'igst') === 'igst' ? 'checked' : '' }}>
+                                <label class="form-check-label small">IGST @18%</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" disabled
+                                    {{ ($quotation->tax_type ?? 'igst') === 'sgst_cgst' ? 'checked' : '' }}>
+                                <label class="form-check-label small">SGST @9% + CGST @9%</label>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <small class=" d-block">Valid Until</small>
-                            <strong>{{ $quotation->valid_until ? $quotation->valid_until->format('M d, Y') : 'Not specified' }}</strong>
+                        @php
+                            $taxType = $quotation->tax_type ?? 'igst';
+                            $showIgst = $taxType === 'igst' && (float) ($quotation->igst ?? 0) > 0;
+                            $showSgst = $taxType === 'sgst_cgst' && (float) ($quotation->sgst ?? 0) > 0;
+                            $showCgst = $taxType === 'sgst_cgst' && (float) ($quotation->cgst ?? 0) > 0;
+                        @endphp
+                        @if ($showIgst)
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>IGST @18%:</span><span>₹{{ number_format((float) $quotation->igst, 2) }}</span>
+                            </div>
+                        @endif
+                        @if ($showSgst)
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>SGST @9%:</span><span>₹{{ number_format((float) $quotation->sgst, 2) }}</span>
+                            </div>
+                        @endif
+                        @if ($showCgst)
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>CGST @9%:</span><span>₹{{ number_format((float) $quotation->cgst, 2) }}</span>
+                            </div>
+                        @endif
+                        <div class="d-flex justify-content-between">
+                            <span class="h5 fw-bold">Grand Total:</span>
+                            <span class="h4 text-success">₹{{ number_format($quotation->grand_total, 2) }}</span>
                         </div>
-                        <div class="mb-3">
-                            <small class=" d-block">Created</small>
-                            <strong>{{ $quotation->created_at->format('M d, Y H:i') }}</strong>
+                        <div class="mt-2 border-top pt-2">
+                            <small class="text-muted d-block">Amount (in words)</small>
+                            <small class="fw-semibold">{{ $quotation->amount_in_words ?? '—' }}</small>
                         </div>
                     </div>
                 </div>
@@ -278,7 +299,7 @@
                 @endif
 
                 <!-- Actions -->
-                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card shadow-sm mt-3">
                     <div class="card-body text-center py-4">
                         <a href="{{ route('quotations.print', $quotation) }}" class="btn btn-secondary btn-lg w-100 mb-2"
                             target="_blank">

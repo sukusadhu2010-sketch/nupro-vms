@@ -32,8 +32,8 @@
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Customer <span class="text-danger">*</span></label>
-                                    <select name="customer_id" class="form-select" required>
-                                        <option value="">Select Customer</option>
+                                    <select name="customer_id" class="form-select select2" required data-placeholder="Select Customer">
+                                        <option value=""></option>
                                         @foreach ($customers as $customer)
                                             <option value="{{ $customer->id }}">
                                                 {{ $customer->company }} - {{ $customer->name }} ({{ $customer->email }})
@@ -56,54 +56,31 @@
                                     <div class="product-row row mb-3 border p-3 rounded bg-light">
                                         <div class="col-md-4">
                                             <label class="form-label fw-bold small">Product Name <span class="text-danger">*</span></label>
-                                            <select class="form-select product-select" name="products[0][product_id]" required>
-                                                <option value="">Select Product</option>
+                                            <select class="form-select product-select select2" name="products[0][product_id]" required data-placeholder="Select Product">
+                                                <option value=""></option>
                                                 @foreach ($products as $product)
-                                                    <option value="{{ $product->id }}" data-price="{{ $product->price }}"
+                                                    <option value="{{ $product->id }}"
                                                         data-name="{{ $product->name }}">
-                                                        {{ $product->name }} - ₹{{ number_format($product->price, 2) }}
-                                                        ({{ $product->vendor?->company ?? 'No Vendor' }})
+                                                        {{ $product->name }} - {{ $product->productCategory?->name ?? $product->category ?? 'General' }}
                                                     </option>
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div class="col-md-2">
+                                        <div class="col-md-3">
                                             <label class="form-label fw-bold small">Quantity <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control qty-input" inputmode="numeric"
                                                 name="products[0][quantity]" value="1" required>
                                         </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label fw-bold small">Unit Price</label>
-                                            <input type="text" class="form-control unit-price-input" inputmode="decimal"
-                                                name="products[0][unit_price]" placeholder="0.00">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label fw-bold small">Total Price</label>
-                                            <input type="text" class="form-control total-price-input" inputmode="decimal"
-                                                name="products[0][total_price]" placeholder="0.00" readonly>
-                                        </div>
                                         <div class="col-12 mt-2">
-                                            <label class="form-label fw-bold small mb-1">LC / Credit / Advance / PIC / PDC / Proforma Invoice</label>
-                                            <div class="d-flex flex-wrap gap-3">
-                                                @foreach (['LC' => 'LC', 'Credit' => 'Credit', 'Advance' => 'Advance', 'PIC' => 'PIC', 'PDC' => 'PDC', 'Proforma Invoice' => 'Proforma Invoice'] as $key => $label)
-                                                    <div class="form-check">
-                                                        <input class="form-check-input pay-method" type="checkbox"
-                                                            name="products[0][payment_methods][]" value="{{ $key }}" id="pay_0_{{ $loop->index }}">
-                                                        <label class="form-check-label small" for="pay_0_{{ $loop->index }}">{{ $label }}</label>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                        <div class="col-12 mt-2">
-                                            <label class="form-label fw-bold small mb-1">Description</label>
+                                            <label class="form-label fw-bold small mb-1">Additional Information</label>
                                             <div class="row g-2">
-                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">MOC <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][moc]" placeholder="MOC *" required></div>
-                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">MFG Spec <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][mfg_spec]" placeholder="MFG Spec *" required></div>
-                                                <div class="col-md-2"><label class="form-label fw-bold small mb-1">Trim <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][trim]" placeholder="Trim *" required></div>
-                                                <div class="col-md-2"><label class="form-label fw-bold small mb-1">Operation <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][operation]" placeholder="Operation *" required></div>
-                                                <div class="col-md-2"><label class="form-label fw-bold small mb-1">End Connection <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][end_connection]" placeholder="End Connection *" required></div>
-                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">Rating <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][rating]" placeholder="Rating *" required></div>
-                                                <div class="col-md-3"><label class="form-label fw-bold small mb-1">Media <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][media]" placeholder="Media *" required></div>
+                                                <div class="col-6 col-md-3"><label class="form-label fw-bold small mb-1">MOC <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][moc]" placeholder="MOC *" required></div>
+                                                <div class="col-6 col-md-3"><label class="form-label fw-bold small mb-1">MFG Spec <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][mfg_spec]" placeholder="MFG Spec *" required></div>
+                                                <div class="col-6 col-md-3"><label class="form-label fw-bold small mb-1">Trim <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][trim]" placeholder="Trim *" required></div>
+                                                <div class="col-6 col-md-3"><label class="form-label fw-bold small mb-1">Operation <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][operation]" placeholder="Operation *" required></div>
+                                                <div class="col-6 col-md-3"><label class="form-label fw-bold small mb-1">End Connection <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][end_connection]" placeholder="End Connection *" required></div>
+                                                <div class="col-6 col-md-3"><label class="form-label fw-bold small mb-1">Rating <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][rating]" placeholder="Rating *" required></div>
+                                                <div class="col-6 col-md-3"><label class="form-label fw-bold small mb-1">Media <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" name="products[0][media]" placeholder="Media *" required></div>
                                             </div>
                                         </div>
                                         <div class="col-12 mt-2">
@@ -111,7 +88,6 @@
                                             <textarea class="form-control" name="products[0][remarks]" rows="2" placeholder="Remarks"></textarea>
                                         </div>
                                         <div class="col-12 mt-2 d-flex justify-content-end">
-                                            <div class="subtotal me-3 fw-bold">₹0.00</div>
                                             <button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="fas fa-trash"></i></button>
                                         </div>
                                     </div>
@@ -133,38 +109,6 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Total Items: <span id="totalItems">0</span></span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Total Amount (Qty):</span>
-                                <span id="totalAmount">₹0.00</span>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label fw-bold small mb-1">Tax Details</label>
-                                <div class="form-check">
-                                    <input class="form-check-input tax-type" type="radio" name="tax_type" value="igst" checked id="taxIgst">
-                                    <label class="form-check-label small" for="taxIgst">IGST @18%</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input tax-type" type="radio" name="tax_type" value="sgst_cgst" id="taxSgst">
-                                    <label class="form-check-label small" for="taxSgst">SGST @9% + CGST @9%</label>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2" id="igstRow">
-                                <span>IGST @18%:</span><span id="igstAmount">₹0.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2" id="sgstRow" style="display:none">
-                                <span>SGST @9%:</span><span id="sgstAmount">₹0.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2" id="cgstRow" style="display:none">
-                                <span>CGST @9%:</span><span id="cgstAmount">₹0.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="h5 fw-bold">Grand Total:</span>
-                                <span class="h4 text-success" id="grandTotal">₹0.00</span>
-                            </div>
-                            <div class="mt-2 border-top pt-2">
-                                <small class="text-muted d-block">Amount (in words)</small>
-                                <small class="fw-semibold" id="amountInWords">Zero Rupees Only</small>
                             </div>
                         </div>
                     </div>
@@ -226,122 +170,41 @@
 
                 newRow.querySelectorAll('select, input, textarea, label').forEach(el => {
                     if (el.name) el.name = el.name.replace(/\[\d+\]/g, `[${productIndex}]`);
-                    if (el.id && el.id.includes('pay_')) el.id = el.id.replace(/pay_\d+_/, `pay_${productIndex}_`);
-                });
-                newRow.querySelectorAll('label[for]').forEach(el => {
-                    el.htmlFor = el.htmlFor.replace(/pay_\d+_/, `pay_${productIndex}_`);
                 });
 
                 // Reset values for the new row
                 newRow.querySelector('.product-select').value = '';
                 newRow.querySelector('.qty-input').value = '1';
-                newRow.querySelector('.unit-price-input').value = '';
-                newRow.querySelector('.total-price-input').value = '';
-                newRow.querySelector('.subtotal').textContent = '₹0.00';
-                newRow.querySelector('.subtotal').dataset.value = '0.00';
                 newRow.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
-                newRow.querySelectorAll('input[type=text]:not(.qty-input):not(.unit-price-input):not(.total-price-input), textarea').forEach(el => el.value = '');
+                newRow.querySelectorAll('input[type=text]:not(.qty-input), textarea').forEach(el => el.value = '');
+
+                // Re-init Select2 on the cloned select
+                const clonedSelect = newRow.querySelector('.product-select');
+                if (window.jQuery && clonedSelect) {
+                    jQuery(clonedSelect).select2({ width: '100%', placeholder: 'Select Product', allowClear: true });
+                }
 
                 bindRow(newRow);
                 container.appendChild(newRow);
             });
 
             // ---- Numeric input restrictions ----
-            function numericOnly(el, decimals) {
+            function numericOnly(el) {
                 el.addEventListener('input', function() {
-                    if (decimals) {
-                        let v = this.value.replace(/[^0-9.]/g, '');
-                        const parts = v.split('.');
-                        v = parts.length > 1 ? parts[0] + '.' + parts.slice(1).join('').slice(0, 2) : v;
-                        this.value = v;
-                    } else {
-                        this.value = this.value.replace(/[^0-9]/g, '');
-                    }
-                    const row = this.closest('.product-row');
-                    recalcRow(row);
+                    this.value = this.value.replace(/[^0-9]/g, '');
                 });
-            }
-
-            function recalcRow(row) {
-                const qty = parseInt(row.querySelector('.qty-input').value) || 0;
-                const unitPrice = parseFloat(row.querySelector('.unit-price-input').value) || 0;
-                const total = qty * unitPrice;
-                row.querySelector('.total-price-input').value = total ? total.toFixed(2) : '';
-                const subtotalEl = row.querySelector('.subtotal');
-                subtotalEl.textContent = '₹' + total.toFixed(2);
-                subtotalEl.dataset.value = total.toFixed(2);
-                updateTotals();
-            }
-
-            function round2(v) { return Math.round(v * 100) / 100; }
-
-            function inWords(num) {
-                num = round2(num);
-                const rupees = Math.floor(num);
-                const paise = Math.round((num - rupees) * 100);
-                const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
-                const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
-                const two = n => n < 20 ? ones[n] : (tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : ''));
-                const conv = n => {
-                    if (n === 0) return 'Zero';
-                    const parts = [];
-                    const cr = Math.floor(n / 10000000); n %= 10000000;
-                    const lk = Math.floor(n / 100000); n %= 100000;
-                    const th = Math.floor(n / 1000); n %= 1000;
-                    const hu = Math.floor(n / 100); n %= 100;
-                    if (cr) parts.push(conv(cr) + ' Crore');
-                    if (lk) parts.push(two(lk) + ' Lakh');
-                    if (th) parts.push(two(th) + ' Thousand');
-                    if (hu) parts.push(ones[hu] + ' Hundred');
-                    if (n) parts.push(two(n));
-                    return parts.join(' ');
-                };
-                let w = conv(rupees) + ' Rupees';
-                if (paise > 0) w += ' And ' + two(paise) + ' Paise';
-                return w + ' Only';
-            }
-
-            function applyTaxes(totalAmount) {
-                const taxType = document.querySelector('input[name="tax_type"]:checked')?.value || 'igst';
-                const igst = taxType === 'igst' ? round2(totalAmount * 0.18) : 0;
-                const sgst = taxType === 'sgst_cgst' ? round2(totalAmount * 0.09) : 0;
-                const cgst = taxType === 'sgst_cgst' ? round2(totalAmount * 0.09) : 0;
-                const taxAmount = round2(igst + sgst + cgst);
-                return { taxType, igst, sgst, cgst, taxAmount, grandTotal: round2(totalAmount + taxAmount) };
             }
 
             function updateTotals() {
                 let totalItems = 0;
-                let totalAmount = 0;
                 document.querySelectorAll('.product-row').forEach(row => {
                     totalItems += parseInt(row.querySelector('.qty-input').value) || 0;
-                    totalAmount += parseFloat(row.querySelector('.subtotal').dataset.value || 0);
                 });
-                const t = applyTaxes(totalAmount);
                 document.getElementById('totalItems').textContent = totalItems;
-                document.getElementById('totalAmount').textContent = '₹' + totalAmount.toFixed(2);
-                document.getElementById('igstRow').style.display = t.taxType === 'igst' ? '' : 'none';
-                document.getElementById('sgstRow').style.display = t.taxType === 'sgst_cgst' ? '' : 'none';
-                document.getElementById('cgstRow').style.display = t.taxType === 'sgst_cgst' ? '' : 'none';
-                document.getElementById('igstAmount').textContent = '₹' + t.igst.toFixed(2);
-                document.getElementById('sgstAmount').textContent = '₹' + t.sgst.toFixed(2);
-                document.getElementById('cgstAmount').textContent = '₹' + t.cgst.toFixed(2);
-                document.getElementById('grandTotal').textContent = '₹' + t.grandTotal.toFixed(2);
-                document.getElementById('amountInWords').textContent = inWords(t.grandTotal);
             }
 
-            document.querySelectorAll('.tax-type').forEach(r => r.addEventListener('change', updateTotals));
-
             function bindRow(row) {
-                numericOnly(row.querySelector('.qty-input'), false);
-                numericOnly(row.querySelector('.unit-price-input'), true);
-                numericOnly(row.querySelector('.total-price-input'), true);
-
-                row.querySelector('.product-select').addEventListener('change', function() {
-                    const price = this.selectedOptions[0]?.dataset.price || 0;
-                    row.querySelector('.unit-price-input').value = price ? parseFloat(price).toFixed(2) : '';
-                    recalcRow(row);
-                });
+                numericOnly(row.querySelector('.qty-input'));
 
                 row.querySelector('.remove-row').onclick = function() {
                     if (document.querySelectorAll('.product-row').length > 1) {
@@ -354,7 +217,20 @@
             }
 
             document.querySelectorAll('.product-row').forEach(bindRow);
-            recalcRow(document.querySelector('.product-row'));
+            updateTotals();
+
+            // Initialize Select2 on all dropdowns with search
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.jQuery) {
+                    jQuery('select.select2').each(function() {
+                        jQuery(this).select2({
+                            width: '100%',
+                            placeholder: jQuery(this).data('placeholder') || 'Select',
+                            allowClear: true
+                        });
+                    });
+                }
+            });
 
             // Attachment Dropzone
             const dropzone = document.getElementById('attachmentDropzone');

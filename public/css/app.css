@@ -151,6 +151,15 @@ code {
 .sidebar {
     background: var(--bg-surface) !important;
     border-right: 1px solid var(--border) !important;
+    /* Keep the sidebar fixed and independent of page content so long
+       pages (e.g. Create Enquiry) can never break the layout */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    max-height: 100vh;
+    flex-shrink: 0;
+    overflow-y: auto;
+    z-index: 100;
 }
 
 .sidebar .nav-link {

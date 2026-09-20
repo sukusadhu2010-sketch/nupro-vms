@@ -64,7 +64,6 @@
                                         <th>Date</th>
                                         <th>Customer</th>
                                         <th>Items</th>
-                                        <th>Total Value</th>
                                         <th>Priority</th>
                                         <th>Status</th>
                                         <th>Actions</th>
@@ -92,9 +91,6 @@
                                                     <small
                                                         class="text-muted">{{ Str::limit($enquiry->formatted_items, 60) }}</small>
                                                 @endif
-                                            </td>
-                                            <td><strong
-                                                    class="text-success">₹{{ number_format($enquiry->total_amount, 2) }}</strong>
                                             </td>
                                             <td>
                                                 <span class="badge {{ $enquiry->priority_badge }} px-3 py-2 fs-6 me-1">

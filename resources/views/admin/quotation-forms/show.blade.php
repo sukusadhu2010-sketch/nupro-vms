@@ -105,7 +105,7 @@
                 <h6 class="fw-bold mt-3">Terms &amp; Conditions</h6>
                 <table class="table table-bordered mb-3">
                     <tr><th style="width:28%">Delivery Terms</th><td>{{ $form->delivery_terms }}</td></tr>
-                    <tr><th>Tax Details</th><td>IGST: {{ $form->igst_percent }}% | SGST: {{ $form->sgst_percent }}% | CGST: {{ $form->cgst_percent }}%</td></tr>
+                    <tr><th>Tax Details</th><td>@php $taxParts = []; if (($form->igst_percent ?? 0) > 0) { $taxParts[] = 'IGST: ' . rtrim(rtrim(number_format((float) $form->igst_percent, 2), '0'), '.') . '%'; } if (($form->sgst_percent ?? 0) > 0) { $taxParts[] = 'SGST: ' . rtrim(rtrim(number_format((float) $form->sgst_percent, 2), '0'), '.') . '%'; } if (($form->cgst_percent ?? 0) > 0) { $taxParts[] = 'CGST: ' . rtrim(rtrim(number_format((float) $form->cgst_percent, 2), '0'), '.') . '%'; } @endphp{{ implode(' | ', $taxParts) ?: 'N/A' }}</td></tr>
                     <tr><th>Payment Terms</th><td>{!! nl2br(e($form->payment_terms ?? '')) !!}</td></tr>
                     <tr><th>Inspection — Vendor Scope</th><td>{!! nl2br(e($form->inspection_vendor_scope ?? '')) !!}</td></tr>
                     <tr><th>Inspection — Third Party Scope</th><td>{!! nl2br(e($form->inspection_third_party_scope ?? '')) !!}</td></tr>

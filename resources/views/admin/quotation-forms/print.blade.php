@@ -20,6 +20,9 @@
         .sign-block { margin-top: 48px; text-align: right; }
         .sign-line { border-top: 1px solid #333; display: inline-block; padding-top: 4px; min-width: 260px; text-align: center; }
         .notes { white-space: pre-line; }
+        .print-seal { position: fixed; bottom: 28mm; right: 20mm; width: 32mm; opacity: 0.9; z-index: 50; }
+        .print-signature { position: fixed; bottom: 20mm; right: 55mm; width: 38mm; opacity: 0.95; z-index: 50; }
+        .print-letterhead { display: block; width: 100%; margin-bottom: 10px; }
         @media print {
             body { margin: 10mm; }
             .no-print { display: none !important; }
@@ -34,6 +37,19 @@
         <a href="{{ route('quotation-forms.index') }}">Back to List</a>
         <button onclick="window.print()">Print / Export PDF</button>
     </div>
+
+    @php($org = \App\Models\OrganizationSetting::current())
+
+    <!-- Letter Head / Seal / Digital Signature -->
+    @if ($org->letterhead_path)
+        <img src="{{ $org->letterhead_url }}" alt="Letter Head" class="print-letterhead">
+    @endif
+    @if ($org->seal_path)
+        <img src="{{ $org->seal_url }}" alt="Seal" class="print-seal">
+    @endif
+    @if ($org->signature_path)
+        <img src="{{ $org->signature_url }}" alt="Digital Signature" class="print-signature">
+    @endif
 
     <!-- HEADER -->
     <div class="doc-header">
@@ -143,9 +159,13 @@
         <tr>
             <th>Tax Details</th>
             <td>
-                IGST: {{ $form->igst_percent }}% &nbsp;|&nbsp;
-                SGST: {{ $form->sgst_percent }}% &nbsp;|&nbsp;
-                CGST: {{ $form->cgst_percent }}%
+                @php
+                    $taxParts = [];
+                    if (($form->igst_percent ?? 0) > 0) { $taxParts[] = 'IGST: ' . rtrim(rtrim(number_format((float) $form->igst_percent, 2), '0'), '.') . '%'; }
+                    if (($form->sgst_percent ?? 0) > 0) { $taxParts[] = 'SGST: ' . rtrim(rtrim(number_format((float) $form->sgst_percent, 2), '0'), '.') . '%'; }
+                    if (($form->cgst_percent ?? 0) > 0) { $taxParts[] = 'CGST: ' . rtrim(rtrim(number_format((float) $form->cgst_percent, 2), '0'), '.') . '%'; }
+                @endphp
+                {{ implode(' | ', $taxParts) ?: 'N/A' }}
             </td>
         </tr>
         <tr><th>Payment Terms</th><td class="notes">{{ $form->payment_terms }}</td></tr>
