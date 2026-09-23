@@ -30,7 +30,13 @@ class ProductController extends Controller
         }
 
         if ($request->filled('status')) {
+
+        if($request->status=='out_of_stock'){
+            
+            $query->where('stock_quantity', '<=', 0);
+        } else {
             $query->where('status', $request->status);
+        }
         }
 
         if ($request->filled('category_id')) {

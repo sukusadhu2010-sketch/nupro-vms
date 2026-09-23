@@ -108,7 +108,7 @@
                                                         class="btn btn-outline-primary btn-sm">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <form method="POST"
+                                                    <!-- <form method="POST"
                                                         action="{{ route('enquiries.update-status', $enquiry) }}"
                                                         class="d-inline" style="display: contents;">
                                                         @csrf @method('POST')
@@ -124,7 +124,7 @@
                                                                 {{ $enquiry->status == 'closed' ? 'selected' : '' }}>Closed
                                                             </option>
                                                         </select>
-                                                    </form>
+                                                    </form> -->
                                                     <button class="btn btn-outline-danger btn-sm"
                                                         onclick="confirmDelete({{ $enquiry->id }})">
                                                         <i class="fas fa-trash"></i>
