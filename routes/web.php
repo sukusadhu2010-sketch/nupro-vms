@@ -78,8 +78,17 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
   //  Route::resource('admin.enquiries', \App\Http\Controllers\Admin\EnquiryController::class);
     Route::resource('users', UserController::class);
+    // Legacy combined vendor management (kept for compatibility)
     Route::resource('vendors', VendorController::class);
     Route::post('vendors/{vendor}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
+
+    // Foundry Management
+    Route::resource('foundry-vendors', VendorController::class)->parameters(['foundry-vendors' => 'vendor'])->names('foundry-vendors');
+    Route::post('foundry-vendors/{vendor}/toggle-status', [VendorController::class, 'toggleStatus'])->name('foundry-vendors.toggle-status');
+
+    // Sub Vendor Management
+    Route::resource('sub-vendors', VendorController::class)->parameters(['sub-vendors' => 'vendor'])->names('sub-vendors');
+    Route::post('sub-vendors/{vendor}/toggle-status', [VendorController::class, 'toggleStatus'])->name('sub-vendors.toggle-status');
     Route::resource('customers', CustomerController::class);
     Route::post('customers/{customer}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
     Route::resource('products', ProductController::class);

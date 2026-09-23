@@ -41,7 +41,7 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <button type="submit" class="btn btn-outline-warning btn-sm w-100">
+                                <button type="submit" class="btn btn-warning btn-sm w-100">
                                     <i class="fas fa-search me-1"></i>Filter
                                 </button>
                             </div>
@@ -77,13 +77,13 @@
                                                 <div class="fw-bold text-warning">{{ $customers->firstItem() + $index }}</div>
                                             </td>
                                             <td>
-                                                <div class="fw-semibold text-dark">{{ $customer->name ?? $customer->user->name ?? 'N/A' }}</div>
+                                                <div class="fw-semibold">{{ $customer->name ?? $customer->user?->name ?? 'N/A' }}</div>
                                             </td>
                                             <td>
-                                                <small class="text-muted">{{ $customer->user->email ?? 'N/A' }}</small>
+                                                <div class="fw-semibold">{{ $customer->user?->email ?? 'N/A' }}</div>
                                             </td>
                                             <td>
-                                                <small>{{ $customer->phone ?? 'N/A' }}</small>
+                                                <div class="fw-semibold">{{ $customer->phone ?? 'N/A' }}</div>
                                             </td>
                                             <td>
                                                 <small><code class="bg-light px-2 py-1 rounded">{{ $customer->gst_no ?? 'N/A' }}</code></small>

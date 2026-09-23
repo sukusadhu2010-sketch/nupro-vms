@@ -140,9 +140,15 @@
                     </li>
                     <li class="nav-item my-2 border-top border-secondary"></li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.vendors.*') ? 'active' : '' }}"
-                            href="{{ route('vendors.index') }}">
-                            <i class="fas fa-truck me-2"></i><span class="sidebar-text">Vendors</span>
+                        <a class="nav-link {{ request()->routeIs('foundry-vendors.*') ? 'active' : '' }}"
+                            href="{{ route('foundry-vendors.index') }}">
+                            <i class="fas fa-industry me-2"></i><span class="sidebar-text">Foundry Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('sub-vendors.*') ? 'active' : '' }}"
+                            href="{{ route('sub-vendors.index') }}">
+                            <i class="fas fa-sitemap me-2"></i><span class="sidebar-text">Sub Vendor Management</span>
                         </a>
                     </li>
                     <li class="nav-item">

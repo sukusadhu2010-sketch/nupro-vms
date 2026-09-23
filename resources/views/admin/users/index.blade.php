@@ -28,14 +28,14 @@
                                     placeholder="Search users by name or email..." value="{{ request('search') }}">
                             </div>
                             <div class="col-md-3">
-                                <select name="role" class="form-select">
+                                <!-- <select name="role" class="form-select">
                                     <option value="">All Roles</option>
                                     <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                                     <option value="vendor" {{ request('role') == 'vendor' ? 'selected' : '' }}>Vendor
                                     </option>
                                     <option value="customer" {{ request('role') == 'customer' ? 'selected' : '' }}>Customer
                                     </option>
-                                </select>
+                                </select> -->
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-outline-primary w-100">

@@ -16,7 +16,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with(['roles', 'vendor', 'customer'])->orderBy('created_at', 'desc');
+        $query = User::with(['roles'])->orderBy('created_at', 'desc');
 
         if ($request->filled('search')) {
             $query->where('name', 'like', '%'.$request->search.'%')
@@ -29,13 +29,7 @@ class UserController extends Controller
             });
         }
 
-        if ($request->filled('status')) {
-            $query->whereHasMorph('vendor', Vendor::class, function ($q) use ($request) {
-                $q->where('status', $request->status);
-            })->orWhereHasMorph('customer', Customer::class, function ($q) use ($request) {
-                $q->where('status', $request->status);
-            });
-        }
+        
 
         $users = $query->paginate(15);
 

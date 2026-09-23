@@ -12,7 +12,7 @@
                             <div>
                                 <h4 class="mb-0 fw-bold text-dark">
                                     <i class="fas fa-user-edit me-2 text-warning"></i>
-                                    Edit Customer: {{ $customer->name ?? $customer->user->name }}
+                                    Edit Customer: {{ $customer->name ?? $customer->user?->name }}
                                 </h4>
                                 <p class="mb-0 text-muted">Update customer information and status</p>
                             </div>
@@ -43,7 +43,7 @@
                                             <input type="text"
                                                 class="form-control form-control-lg @error('name') is-invalid @enderror"
                                                 id="name" name="name"
-                                                value="{{ old('name', $customer->user->name) }}" required>
+                                                value="{{ old('name', $customer->name) }}" required>
                                             <small class="text-muted">Primary identifier for the customer.</small>
                                             @error('name')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -55,7 +55,7 @@
                                             <input type="email"
                                                 class="form-control form-control-lg @error('email') is-invalid @enderror"
                                                 id="email" name="email"
-                                                value="{{ old('email', $customer->user->email) }}" required>
+                                                value="{{ old('email', $customer->email) }}" required>
                                             @error('email')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
