@@ -68,7 +68,7 @@
                                                         <option value="{{ $p->id }}"
                                                             data-name="{{ $p->name }}"
                                                             {{ $p->id == $product['product_id'] ? 'selected' : '' }}>
-                                                            {{ $p->name }} - {{ $p->productCategory?->name ?? $p->category ?? 'General' }}
+                                                           {{ $p->productCategory?->name ?? $p->category ?? 'General' }} -  {{ $p->name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -191,7 +191,7 @@
 
     @push('scripts')
         <script>
-            let productIndex = {{ count($enquiry->products) }};
+            let productIndex = "{{ count($enquiry->products) }}";
 
             document.getElementById('addProduct').addEventListener('click', function() {
                 productIndex++;
@@ -207,8 +207,17 @@
                 newRow.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
                 newRow.querySelectorAll('input[type=text]:not(.qty-input), textarea').forEach(el => el.value = '');
 
-                // Re-init Select2 on the cloned select
+                // Remove cloned Select2 markup (hidden select wrapper + rendered container)
+                // so re-initializing doesn't create a duplicate empty dropdown
+                newRow.querySelectorAll('span.select2, .select2-container').forEach(el => el.remove());
                 const clonedSelect = newRow.querySelector('.product-select');
+                clonedSelect.classList.remove('select2-hidden-accessible');
+                clonedSelect.removeAttribute('data-select2-id');
+                clonedSelect.removeAttribute('aria-hidden');
+                clonedSelect.removeAttribute('tabindex');
+                clonedSelect.style.display = '';
+
+                // Re-init Select2 on the cloned select
                 if (window.jQuery && clonedSelect) {
                     jQuery(clonedSelect).select2({ width: '100%', placeholder: 'Select Product', allowClear: true });
                 }
@@ -246,8 +255,9 @@
 
             document.querySelectorAll('.product-row').forEach(row => {
                 bindRow(row);
+                  updateTotals();
             });
-            updateTotals();
+          
 
             // Initialize Select2 on all dropdowns with search
             document.addEventListener('DOMContentLoaded', function() {

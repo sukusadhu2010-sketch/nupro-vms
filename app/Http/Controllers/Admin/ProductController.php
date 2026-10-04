@@ -16,13 +16,19 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('productCategory')->orderBy('created_at', 'desc');
+        // Default sort: group products by category (alphabetical), then by product name.
+        // LEFT join so products without a category still appear (grouped first).
+        $query = Product::with('productCategory')
+            ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
+            ->orderBy('product_categories.name')
+            ->orderBy('products.name')
+            ->select('products.*');
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->search.'%')
-                  ->orWhere('sku', 'like', '%'.$request->search.'%')
-                  ->orWhere('hsn_code', 'like', '%'.$request->search.'%')
+                $q->where('products.name', 'like', '%'.$request->search.'%')
+                  ->orWhere('products.sku', 'like', '%'.$request->search.'%')
+                  ->orWhere('products.hsn_code', 'like', '%'.$request->search.'%')
                   ->orWhereHas('productCategory', function ($cq) use ($request) {
                       $cq->where('name', 'like', '%'.$request->search.'%');
                   });
@@ -32,15 +38,15 @@ class ProductController extends Controller
         if ($request->filled('status')) {
 
         if($request->status=='out_of_stock'){
-            
-            $query->where('stock_quantity', '<=', 0);
+
+            $query->where('products.stock_quantity', '<=', 0);
         } else {
-            $query->where('status', $request->status);
+            $query->where('products.status', $request->status);
         }
         }
 
         if ($request->filled('category_id')) {
-            $query->where('product_category_id', $request->category_id);
+            $query->where('products.product_category_id', $request->category_id);
         }
 
         $products = $query->paginate(15);
@@ -66,7 +72,8 @@ class ProductController extends Controller
 
         $base = $code;
         $i = 1;
-        while (Product::where('sku', $code)->exists()) {
+        // sku has a DB-level unique index — check across soft-deleted rows too
+        while (Product::withTrashed()->where('sku', $code)->exists()) {
             $code = substr($base, 0, 47) . '-' . ++$i;
         }
 
@@ -175,18 +182,58 @@ class ProductController extends Controller
     }
 
     /**
-     * Delete product.
+     * Display the trashed (soft-deleted) products.
      */
-    public function destroy(Product $product)
+    public function trash()
+    {
+        $products = Product::onlyTrashed()
+            ->with('productCategory')
+            ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
+            ->orderBy('product_categories.name')
+            ->orderBy('products.name')
+            ->select('products.*')
+            ->paginate(15);
+
+        return view('admin.products.trash', compact('products'));
+    }
+
+    /**
+     * Restore a soft-deleted product.
+     */
+    public function restore(Product $product)
+    {
+        $product->restore();
+
+        return redirect()->route('products.trash')
+            ->with('success', 'Product restored successfully!');
+    }
+
+    /**
+     * Permanently delete a product (only from trash).
+     */
+    public function forceDelete(Product $product)
     {
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
 
+        $product->forceDelete();
+
+        return redirect()->route('products.trash')
+            ->with('success', 'Product permanently deleted!');
+    }
+
+    /**
+     * Delete product (soft delete).
+     */
+    public function destroy(Product $product)
+    {
         $product->delete();
 
-        return redirect()->route('products.index')
-            ->with('success', 'Product deleted successfully!');
+        // Send the user straight to the trash page so the deleted
+        // product is visible there — not back to page 1 of the index.
+        return redirect()->route('products.trash')
+            ->with('success', 'Product deleted successfully! It is shown in the trash below.');
     }
 }
 

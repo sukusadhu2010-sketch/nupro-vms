@@ -62,7 +62,7 @@
                                         @foreach ($salesOrders as $so)
                                             <option value="{{ $so->id }}"
                                                 {{ is_array(old('sales_order_ids')) && in_array($so->id, old('sales_order_ids')) ? 'selected' : '' }}>
-                                                {{ $so->po_number }} — {{ $so->customer->name ?? '' }}</option>
+                                                {{ $so->job_number ?? $so->order_number }} — {{ $so->customer->name ?? '' }}</option>
                                         @endforeach
                                     </select>
                                     <small class="text-muted">Select one or more to auto-populate items below.</small>

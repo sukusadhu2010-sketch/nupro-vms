@@ -110,7 +110,7 @@
                                 </div>
 
                                 <div class="col-12 mt-2">
-                                    <div class="description-entry border rounded-3 p-3 bg-white">
+                                    <div class="description-entry border rounded-3 p-3">
                                         <div class="mb-2">
                                             <strong class="small"><i class="fas fa-list-ul me-1 text-warning"></i>Additional Informations</strong>
                                         </div>
@@ -118,7 +118,7 @@
                                             @foreach (['moc' => '* MOC (Material of Construction)', 'mfg_spec' => '* MFG Spec (Manufacturing Specification)', 'trim' => '* Trim', 'operation' => '* Operation', 'end_connection' => '* End Connection', 'rating' => '* Rating', 'media' => '* Media'] as $field => $descLabel)
                                                 <div class="col-md-6 col-lg-4">
                                                     <label class="form-label small fw-semibold mb-1">{{ $descLabel }}</label>
-                                                    <p class="form-control form-control-sm bg-light">{{ $item->{$field} ?? '—' }}</p>
+                                                    <p class="form-control form-control-sm">{{ $item->{$field} ?? '—' }}</p>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -160,7 +160,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Payment Terms</label>
-                                        <div class="border rounded-3 p-2 bg-white">
+                                        <div class="border rounded-3 p-2">
                                             @foreach (['LC / Credit' => 'lc_credit', 'Advance + PI' => 'advance_pi', 'PDC' => 'pdc', 'Proforma Invoice' => 'proforma_invoice'] as $label => $key)
                                                 <div class="d-flex gap-2 align-items-center mb-2">
                                                     <div class="form-check" style="min-width: 160px;">
@@ -168,7 +168,7 @@
                                                             {{ $quotation->payment_term_option === $key ? 'checked' : '' }}>
                                                         <label class="form-check-label small">{{ $label }}</label>
                                                     </div>
-                                                    <span class="form-control form-control-sm bg-light">{{ ($quotation->payment_term_text[$key] ?? '') ?: '—' }}</span>
+                                                    <span class="form-control form-control-sm ">{{ ($quotation->payment_term_text[$key] ?? '') ?: '—' }}</span>
                                                 </div>
                                             @endforeach
                                         </div>

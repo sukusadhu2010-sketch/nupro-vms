@@ -75,12 +75,36 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <th>PO Number</th>
-                                        <td>{{ $salesOrder->po_number ?? '—' }}</td>
+                                        <th>Job Number</th>
+                                        <td><span class="badge bg-dark">{{ $salesOrder->job_number ?? '—' }}</span></td>
                                     </tr>
                                     <tr>
-                                        <th>Job Number</th>
-                                        <td>{{ $salesOrder->job_number ?? '—' }}</td>
+                                        <th>Customer PO Number</th>
+                                        <td>{{ $salesOrder->customer_po_number ?? '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Customer PO Date</th>
+                                        <td>{{ $salesOrder->customer_po_date?->format('Y-m-d') ?? '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>MTC</th>
+                                        <td>{{ $salesOrder->mtc ? 'Yes' : 'No' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>PDI</th>
+                                        <td>{{ $salesOrder->pdi ? 'Yes' : 'No' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Delivery Target Date</th>
+                                        <td>{{ $salesOrder->delivery_target_date?->format('Y-m-d') ?? '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Payment Mode</th>
+                                        <td>{{ $salesOrder->payment_mode_label }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Credit Days</th>
+                                        <td>{{ $salesOrder->credit_days !== null ? $salesOrder->credit_days . ' days' : '—' }}</td>
                                     </tr>
                                     <tr>
                                         <th>Status</th>

@@ -24,7 +24,7 @@
 
                     <!-- Search & Filter -->
                     <div class="card-body border-bottom">
-                        <form method="GET" class="row g-3">
+                       <!--  <form method="GET" class="row g-3">
                             <div class="col-md-5">
                                 <input type="text" name="search" class="form-control"
                                     placeholder="Search units by name or symbol..." value="{{ request('search') }}">
@@ -50,7 +50,7 @@
                                     </a>
                                 </div>
                             @endif
-                        </form>
+                        </form> -->
                     </div>
 
                     <!-- Units Table -->

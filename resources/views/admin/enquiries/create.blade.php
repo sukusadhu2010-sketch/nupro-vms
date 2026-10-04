@@ -61,7 +61,7 @@
                                                 @foreach ($products as $product)
                                                     <option value="{{ $product->id }}"
                                                         data-name="{{ $product->name }}">
-                                                        {{ $product->name }} - {{ $product->productCategory?->name ?? $product->category ?? 'General' }}
+                                                        {{ $product->productCategory?->name ?? $product->category ?? 'General' }} - {{ $product->name }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -160,7 +160,7 @@
 
     @push('scripts')
         <script>
-            let productIndex = 0;
+            /* let productIndex = 0;
 
             // ---- Repeater: Add row ----
             document.getElementById('addProduct').addEventListener('click', function() {
@@ -178,15 +178,129 @@
                 newRow.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
                 newRow.querySelectorAll('input[type=text]:not(.qty-input), textarea').forEach(el => el.value = '');
 
-                // Re-init Select2 on the cloned select
+                // Remove cloned Select2 markup (hidden select wrapper + rendered container)
+                // so re-initializing doesn't create a duplicate empty dropdown
+                newRow.querySelectorAll('span.select2, .select2-container').forEach(el => el.remove());
                 const clonedSelect = newRow.querySelector('.product-select');
+                clonedSelect.classList.remove('select2-hidden-accessible');
+                clonedSelect.removeAttribute('data-select2-id');
+                clonedSelect.removeAttribute('aria-hidden');
+                clonedSelect.removeAttribute('tabindex');
+                clonedSelect.style.display = '';
+
+                // Re-init Select2 on the cloned select
                 if (window.jQuery && clonedSelect) {
                     jQuery(clonedSelect).select2({ width: '100%', placeholder: 'Select Product', allowClear: true });
                 }
 
                 bindRow(newRow);
                 container.appendChild(newRow);
-            });
+            }); */
+
+            let productIndex = 0;
+
+// Initialize existing Select2
+$(document).ready(function () {
+    $('.product-select').select2({
+        width: '100%',
+        placeholder: 'Select Product',
+        allowClear: true
+    });
+});
+
+// Add Product Row
+document.getElementById('addProduct').addEventListener('click', function () {
+
+    productIndex++;
+$('.product-select').select2('destroy');
+$('.product-select').select2({
+    width: '100%',
+    placeholder: 'Select Product',
+    allowClear: true
+});
+    const container = document.getElementById('productsContainer');
+
+    // Clone first row
+    const newRow = document
+        .querySelector('.product-row')
+        .cloneNode(true);
+
+    // Remove Select2 generated containers from clone
+    newRow.querySelectorAll('.select2-container').forEach(el => el.remove());
+
+    // Update all name attributes
+    newRow.querySelectorAll('[name]').forEach(el => {
+        el.name = el.name.replace(/\[\d+\]/g, `[${productIndex}]`);
+    });
+
+    // Reset Select
+    const select = newRow.querySelector('.product-select');
+
+    select.value = '';
+    select.selectedIndex = 0;
+
+    // Remove Select2 artifacts
+    select.classList.remove('select2-hidden-accessible');
+    select.removeAttribute('data-select2-id');
+    select.removeAttribute('aria-hidden');
+    select.removeAttribute('tabindex');
+
+    // Reset Inputs
+    newRow.querySelectorAll('input[type="text"]').forEach(input => {
+        if (input.classList.contains('qty-input')) {
+            input.value = '1';
+        } else {
+            input.value = '';
+        }
+    });
+
+    // Reset Textareas
+    newRow.querySelectorAll('textarea').forEach(textarea => {
+        textarea.value = '';
+    });
+
+    // Reset Checkboxes
+    newRow.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+    });
+
+    // Append row first
+    container.appendChild(newRow);
+
+    // Reinitialize Select2 ONLY for the new dropdown
+    $(select).select2({
+        width: '100%',
+        placeholder: 'Select Product',
+        allowClear: true
+    });
+
+    // Bind row-specific events
+    bindRow(newRow);
+});
+
+// Remove Product Row
+$(document).on('click', '.remove-row', function () {
+
+    const rows = document.querySelectorAll('.product-row');
+
+    // Keep at least one row
+    if (rows.length > 1) {
+        $(this).closest('.product-row').remove();
+    }
+});
+
+// Example bindRow function
+function bindRow(row) {
+
+    $(row).find('.product-select').on('change', function () {
+
+        const productId = $(this).val();
+
+        console.log('Selected Product ID:', productId);
+
+        // Load product details here if needed
+    });
+}
 
             // ---- Numeric input restrictions ----
             function numericOnly(el) {
@@ -203,7 +317,7 @@
                 document.getElementById('totalItems').textContent = totalItems;
             }
 
-            function bindRow(row) {
+            /* function bindRow(row) {
                 numericOnly(row.querySelector('.qty-input'));
 
                 row.querySelector('.remove-row').onclick = function() {
@@ -214,7 +328,7 @@
                         alert('At least one product row is required.');
                     }
                 };
-            }
+            } */
 
             document.querySelectorAll('.product-row').forEach(bindRow);
             updateTotals();

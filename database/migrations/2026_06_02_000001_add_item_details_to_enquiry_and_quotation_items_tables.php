@@ -24,6 +24,10 @@ return new class extends Migration
 
         Schema::table('enquiry_items', function (Blueprint $table) {
             // Allow duplicate products per enquiry (repeater rows)
+            // MySQL-only index manipulation — skip on other drivers (e.g. sqlite in tests)
+            if (DB::connection()->getDriverName() !== 'mysql') {
+                return;
+            }
             // MySQL requires an index on the FK column before the unique index can be dropped
             if (!collect(DB::select('SHOW INDEX FROM enquiry_items'))->pluck('Key_name')->contains('enquiry_items_enquiry_id_index')) {
                 $table->index('enquiry_id');

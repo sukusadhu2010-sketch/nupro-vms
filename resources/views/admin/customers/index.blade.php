@@ -16,9 +16,14 @@
                                 </h4>
                                 <p class="mb-0 text-muted small">Manage all registered customers and their status</p>
                             </div>
-                            <a href="{{ route('customers.create') }}" class="btn btn-warning btn-sm">
-                                <i class="fas fa-plus me-2"></i>New Customer
-                            </a>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('customers.trash') }}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash me-2"></i>Trash
+                                </a>
+                                <a href="{{ route('customers.create') }}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-plus me-2"></i>New Customer
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -80,7 +85,7 @@
                                                 <div class="fw-semibold">{{ $customer->name ?? $customer->user?->name ?? 'N/A' }}</div>
                                             </td>
                                             <td>
-                                                <div class="fw-semibold">{{ $customer->user?->email ?? 'N/A' }}</div>
+                                                <div class="fw-semibold">{{ $customer?->email ?? 'N/A' }}</div>
                                             </td>
                                             <td>
                                                 <div class="fw-semibold">{{ $customer->phone ?? 'N/A' }}</div>

@@ -16,7 +16,13 @@ class SalesOrder extends Model
         'quotation_id',
         'customer_id',
         'order_number',
-        'po_number',
+        'customer_po_number',
+        'customer_po_date',
+        'mtc',
+        'pdi',
+        'delivery_target_date',
+        'payment_mode',
+        'credit_days',
         'job_number',
         'status',
         'total_amount',
@@ -27,6 +33,10 @@ class SalesOrder extends Model
     protected $casts = [
         'total_amount' => 'decimal:2',
         'expected_delivery_date' => 'date',
+        'customer_po_date' => 'date',
+        'delivery_target_date' => 'date',
+        'mtc' => 'boolean',
+        'pdi' => 'boolean',
     ];
 
     public function quotation(): BelongsTo
@@ -36,7 +46,7 @@ class SalesOrder extends Model
 
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class)->withTrashed();
     }
 
     public function items(): HasMany
@@ -84,6 +94,39 @@ class SalesOrder extends Model
     public function getStatusLabelAttribute(): string
     {
         return ucfirst($this->status);
+    }
+
+    public const PAYMENT_MODES = ['lc', 'credit', 'advance_pi', 'proforma_invoice'];
+
+    public const PAYMENT_MODE_LABELS = [
+        'lc' => 'LC (Letter of Credit)',
+        'credit' => 'Credit',
+        'advance_pi' => 'Advance + PI',
+        'proforma_invoice' => 'Proforma Invoice',
+    ];
+
+    public function getPaymentModeLabelAttribute(): string
+    {
+        return self::PAYMENT_MODE_LABELS[$this->payment_mode] ?? '—';
+    }
+
+    /**
+     * Whether the payment mode requires a credit-days value.
+     */
+    public function isCreditDaysRequired(): bool
+    {
+        return in_array($this->payment_mode, ['lc', 'credit'], true);
+    }
+
+    public function getPaymentModeLabelWithDaysAttribute(): string
+    {
+        $label = $this->payment_mode_label;
+
+        if ($this->credit_days !== null) {
+            $label .= ' (' . $this->credit_days . ' days)';
+        }
+
+        return $label;
     }
 }
 

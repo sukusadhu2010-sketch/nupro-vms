@@ -8,10 +8,15 @@ use App\Models\Quotation;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use Illuminate\Support\Facades\DB;
+use App\Services\JobNumberService;
 use Throwable;
 
 class SalesOrderService
 {
+    public function __construct(private readonly JobNumberService $jobNumberService)
+    {
+    }
+
     /**
      * Convert an accepted quotation into a sales order.
      *
@@ -34,8 +39,14 @@ class SalesOrderService
                 'quotation_id' => $quotation->id,
                 'customer_id' => $customer->id,
                 'order_number' => $orderNumber,
-                'po_number' => $extra['po_number'] ?? null,
-                'job_number' => $extra['job_number'] ?? null,
+                'job_number' => $extra['job_number'] ?? $this->jobNumberService->generate(),
+                'customer_po_number' => $extra['customer_po_number'] ?? null,
+                'customer_po_date' => $extra['customer_po_date'] ?? null,
+                'mtc' => $extra['mtc'] ?? false,
+                'pdi' => $extra['pdi'] ?? false,
+                'delivery_target_date' => $extra['delivery_target_date'] ?? null,
+                'payment_mode' => $extra['payment_mode'] ?? null,
+                'credit_days' => $extra['credit_days'] ?? null,
                 'status' => 'draft',
                 'total_amount' => $quotation->total_amount,
                 'shipping_address' => $customer->address ?? null,

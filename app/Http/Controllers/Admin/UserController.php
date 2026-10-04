@@ -120,23 +120,64 @@ class UserController extends Controller
     }
 
     /**
-     * Delete user.
+     * Display the trashed (soft-deleted) users.
+     */
+    public function trash()
+    {
+        $users = User::onlyTrashed()
+            ->with(['roles'])
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(15);
+
+        return view('admin.users.trash', compact('users'));
+    }
+
+    /**
+     * Restore a soft-deleted user (and its linked vendor/customer profile).
+     */
+    public function restore(User $user)
+    {
+        $user->restore();
+        $user->vendor()->withTrashed()->restore();
+        $user->customer()->withTrashed()->restore();
+
+        return redirect()->route('users.trash')
+            ->with('success', 'User restored successfully!');
+    }
+
+    /**
+     * Permanently delete a user (only from trash).
+     */
+    public function forceDelete(User $user)
+    {
+        try {
+            $user->vendor()->forceDelete();
+            $user->customer()->forceDelete();
+            $user->forceDelete();
+
+            return redirect()->route('users.trash')
+                ->with('success', 'User permanently deleted!');
+        } catch (\Exception $e) {
+            return redirect()->route('users.trash')
+                ->with('error', 'Cannot permanently delete this user — it is referenced by other records.');
+        }
+    }
+
+    /**
+     * Delete user (soft delete) together with its linked vendor/customer profile.
      */
     public function destroy(User $user)
     {
         try {
-        
+
            $user->vendor?->delete();
             $user->customer?->delete();
             $user->delete();
 
-         return response()->json(['status' => true,'message' => 'User deleted successfully!']);
+         return response()->json(['status' => true,'message' => 'User deleted successfully! You can restore it from trash.']);
         } catch (\Exception $e) {
-            return response()->json(['status' => false,'message' => 'Failed to delete vendor.']);
+            return response()->json(['status' => false,'message' => 'Failed to delete user.']);
         }
-
-        // return redirect()->route('admin.users.index')
-        //     ->with('success', 'User deleted successfully!');
     }
 }
 

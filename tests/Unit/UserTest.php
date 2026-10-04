@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class UserTest extends TestCase
 {
@@ -36,19 +36,23 @@ class UserTest extends TestCase
         $role2 = \App\Models\Role::factory()->create(['name' => 'role2']);
         $user->roles()->attach($role2);
 
-        $this->assertTrue($user->hasAnyRole(['role1', 'role2']));
-        $this->assertFalse($user->hasAnyRole(['role3', 'role4']));
+        $this->assertTrue($user->hasAnyRole('role1', 'role2'));
+        $this->assertFalse($user->hasAnyRole('role3', 'role4'));
     }
 
     public function test_user_relationships(): void
     {
         $user = \App\Models\User::factory()->create();
-        $role = \App\Models\Role::factory()->create();
-        $customer = \App\Models\Customer::factory()->create(['user_id' => $user->id]);
-        $vendor = \App\Models\Vendor::factory()->create(['user_id' => $user->id]);
+        \App\Models\Role::factory()->create();
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $user->roles());
-        $this->assertInstanceOf(\App\Models\Customer::class, $user->customer);
-        $this->assertInstanceOf(\App\Models\Vendor::class, $user->vendor);
+        // User linkage is optional: entities created with the withUser() state
+        $customer = \App\Models\Customer::factory()->withUser()->create();
+        $vendor = \App\Models\Vendor::factory()->withUser()->create();
+
+        $this->assertInstanceOf(\App\Models\User::class, $customer->user);
+        $this->assertInstanceOf(\App\Models\User::class, $vendor->user);
+        // And independently: entities can exist without any user
+        $this->assertNull(\App\Models\Customer::factory()->create()->user);
+        $this->assertNull(\App\Models\Vendor::factory()->create()->user);
     }
 }

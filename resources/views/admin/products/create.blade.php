@@ -78,7 +78,7 @@
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="d-flex justify-content-end gap-3 pt-4 border-top">
+                            <div class="d-flex justify-content-end gap-3 pt-4">
                                 <a href="{{ route('products.index') }}" class="btn btn-outline-secondary px-5">
                                     <i class="fas fa-times me-2"></i>Cancel
                                 </a>

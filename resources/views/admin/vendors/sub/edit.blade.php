@@ -129,9 +129,9 @@
                                                 class="form-select form-select-lg @error('status') is-invalid @enderror"
                                                 required>
                                                 <option value="">Select Status</option>
-                                                <option value="pending"
+                                                <!-- <option value="pending"
                                                     {{ old('status', $vendor->status) == 'pending' ? 'selected' : '' }}>
-                                                    Pending</option>
+                                                    Pending</option> -->
                                                 <option value="active"
                                                     {{ old('status', $vendor->status) == 'active' ? 'selected' : '' }}>
                                                     Active</option>

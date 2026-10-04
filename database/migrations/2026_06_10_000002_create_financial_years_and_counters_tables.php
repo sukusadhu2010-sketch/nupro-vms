@@ -39,8 +39,10 @@ return new class extends Migration
             $table->string('enquiry_number')->nullable()->unique()->after('customer_id');
         });
 
-        // Rich-text notes
-        DB::statement('ALTER TABLE quotations MODIFY notes LONGTEXT NULL');
+        // Rich-text notes (MySQL-only raw DDL — skip on other drivers)
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE quotations MODIFY notes LONGTEXT NULL');
+        }
     }
 
     public function down(): void

@@ -16,9 +16,14 @@
                             </h4>
                             <p class="mb-0 text-muted">Manage all registered foundry vendors and their status</p>
                         </div>
-                        <a href="{{ route('foundry-vendors.create') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>New Foundry
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('foundry-vendors.trash') }}" class="btn btn-outline-danger">
+                                <i class="fas fa-trash me-2"></i>Trash
+                            </a>
+                            <a href="{{ route('foundry-vendors.create') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>New Foundry
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -32,8 +37,8 @@
                         <div class="col-md-2">
                             <select name="status" class="form-select">
                                 <option value="">All Status</option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
-                                </option>
+                                <!-- <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
+                                </option> -->
                                 <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active
                                 </option>
                                 <option value="suspended" {{ request('status') == 'suspended' ? 'selected' : '' }}>

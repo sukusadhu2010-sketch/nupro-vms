@@ -78,15 +78,7 @@
                                                         class="btn btn-outline-secondary" title="Print" target="_blank">
                                                         <i class="fas fa-print"></i>
                                                     </a>
-                                                   {{-- @if (!in_array($quotation->status, ['converted', 'expired']))
-                                                        <form action="{{ route('sales-orders.store') }}" method="POST" class="d-inline" onsubmit="return confirm('Convert this quotation to a sales order?');">
-                                                            @csrf
-                                                            <input type="hidden" name="quotation_id" value="{{ $quotation->id }}">
-                                                            <button type="submit" class="btn btn-outline-success" title="Convert to Sales Order">
-                                                                <i class="fas fa-shopping-cart"></i>
-                                                            </button>
-                                                        </form>
-                                                    @endif --}}
+                                                  
                                                 </div>
                                             </td>
                                         </tr>
@@ -104,7 +96,7 @@
                     </div>
                     @if (isset($quotations) && $quotations->hasPages())
                         <div class="card-footer">
-                            {{ $quotations->links() }}
+                            {{ $quotations->links('pagination::bootstrap-5') }}
                         </div>
                     @endif
                 </div>

@@ -60,14 +60,83 @@
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="po_number" class="form-label fw-bold">PO Number</label>
-                                    <input type="text" name="po_number" id="po_number" class="form-control"
-                                        value="{{ old('po_number') }}" placeholder="Enter PO number">
+                                    <label for="job_number_preview" class="form-label fw-bold">Job Number</label>
+                                    <input type="text" id="job_number_preview" class="form-control bg-light"
+                                        value="Auto-generated ({{ $nextJobNumber }})" readonly disabled>
+                                    <div class="form-text">A unique Job Number is generated automatically when the order is created.</div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="customer_po_number" class="form-label fw-bold">Customer PO Number</label>
+                                    <input type="text" name="customer_po_number" id="customer_po_number" class="form-control"
+                                        value="{{ old('customer_po_number') }}" placeholder="Enter customer PO number">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="job_number" class="form-label fw-bold">Job Number</label>
-                                    <input type="text" name="job_number" id="job_number" class="form-control"
-                                        value="{{ old('job_number') }}" placeholder="Enter job number">
+                                    <label for="customer_po_date" class="form-label fw-bold">Customer PO Date</label>
+                                    <input type="date" name="customer_po_date" id="customer_po_date" class="form-control"
+                                        value="{{ old('customer_po_date') }}">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label fw-bold d-block">MTC</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="mtc" id="mtc_yes" value="1"
+                                            {{ old('mtc') == 1 ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="mtc_yes">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="mtc" id="mtc_no" value="0"
+                                            {{ old('mtc') !== '1' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="mtc_no">No</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label fw-bold d-block">PDI</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="pdi" id="pdi_yes" value="1"
+                                            {{ old('pdi') == 1 ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="pdi_yes">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="pdi" id="pdi_no" value="0"
+                                            {{ old('pdi') !== '1' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="pdi_no">No</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="delivery_target_date" class="form-label fw-bold">Delivery Target Date</label>
+                                    <input type="date" name="delivery_target_date" id="delivery_target_date" class="form-control"
+                                        value="{{ old('delivery_target_date') }}">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="payment_mode" class="form-label fw-bold">Payment Mode</label>
+                                    <select name="payment_mode" id="payment_mode" class="form-select">
+                                        <option value="">— Select —</option>
+                                        @foreach (\App\Models\SalesOrder::PAYMENT_MODE_LABELS as $value => $label)
+                                            <option value="{{ $value }}" {{ old('payment_mode') === $value ? 'selected' : '' }}>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('payment_mode')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="row" id="credit-days-row" style="display: {{ in_array(old('payment_mode'), ['lc', 'credit']) ? 'flex' : 'none' }};">
+                                <div class="col-md-3 mb-3">
+                                    <label for="credit_days" class="form-label fw-bold">No. of Days</label>
+                                    <input type="number" name="credit_days" id="credit_days" class="form-control" min="1" max="365"
+                                        value="{{ old('credit_days') }}" placeholder="e.g. 30">
+                                    <div class="form-text">Required for LC and Credit payment modes.</div>
+                                    @error('credit_days')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
@@ -83,4 +152,20 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const paymentMode = document.getElementById('payment_mode');
+                const creditRow = document.getElementById('credit-days-row');
+
+                function toggleCreditDays() {
+                    creditRow.style.display = ['lc', 'credit'].includes(paymentMode.value) ? 'flex' : 'none';
+                }
+
+                paymentMode.addEventListener('change', toggleCreditDays);
+                toggleCreditDays();
+            });
+        </script>
+    @endpush
 @endsection

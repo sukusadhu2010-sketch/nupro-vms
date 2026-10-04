@@ -14,10 +14,10 @@
                             <i class="fas fa-users-cog fa-2x"></i>
                         </div>
                         <div>
-                            <h1 class="h3 mb-1 fw-bold">{{ $vendor->user->name }}</h1>
+                            <h1 class="h3 mb-1 fw-bold">{{ $vendor->user?->name ?? $vendor->name }}</h1>
                             <p class="mb-1 fw-semibold text-primary">Contact Name / Primary Identifier</p>
                             <div class="d-flex align-items-center gap-3 text-muted small">
-                                <span><i class="fas fa-envelope me-1"></i>{{ $vendor->user->email }}</span>
+                                <span><i class="fas fa-envelope me-1"></i>{{ $vendor->email }}</span>
                                 @if ($vendor->phone)
                                     <span><i class="fas fa-mobile-alt me-1"></i>{{ $vendor->phone }}</span>
                                 @endif

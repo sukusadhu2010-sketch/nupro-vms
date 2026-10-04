@@ -21,8 +21,8 @@ class EnquiryController extends Controller
 
         if ($request->filled('search')) {
             $query->whereHas('customer', function ($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->search.'%')
-                  ->orWhere('company', 'like', '%'.$request->search.'%');
+                $q->where('name', 'like', '%'.$request->search.'%');
+                 
             });
         }
 

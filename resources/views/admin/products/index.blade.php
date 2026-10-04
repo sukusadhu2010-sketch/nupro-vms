@@ -16,9 +16,14 @@
                                 </h4>
                                 <p class="mb-0 text-muted small">Manage all products across vendors</p>
                             </div>
-                            <a href="{{ route('products.create') }}" class="btn btn-info btn-sm">
-                                <i class="fas fa-plus me-2"></i>New Product
-                            </a>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('products.trash') }}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash me-2"></i>Trash
+                                </a>
+                                <a href="{{ route('products.create') }}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-plus me-2"></i>New Product
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -41,8 +46,8 @@
                             <div class="col-md-3">
                                 <select name="status" class="form-select form-select-sm">
                                     <option value="">All Status</option>
-                                    <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft
-                                    </option>
+                                    <!-- <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft
+                                    </option> -->
                                     <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active
                                     </option>
                                     <option value="out_of_stock"
@@ -208,10 +213,10 @@
                     @if ($products->hasPages())
                         <div class="card-footer py-3">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="small text-muted">
+                                <!-- <div class="small text-muted">
                                     Showing {{ $products->firstItem() }} to {{ $products->lastItem() }} of
                                     {{ $products->total() }} products
-                                </div>
+                                </div> -->
                                 {{ $products->appends(request()->query())->links('pagination::bootstrap-5') }}
                             </div>
                         </div>

@@ -15,7 +15,7 @@
                                     <i class="fas fa-user-tie me-2"></i>
                                     Customer Profile
                                 </h3>
-                                <p class="mb-0 opacity-90">Detailed view of {{ $customer->name ?? $customer->user->name }}</p>
+                                <p class="mb-0 opacity-90">Detailed view of {{ $customer->name ?? $customer->user?->name }}</p>
                             </div>
                             <div class="d-flex gap-2">
                                 <a href="{{ route('customers.edit', $customer) }}" class="btn btn-light btn-sm">
@@ -36,12 +36,12 @@
                                     <div class="col-auto">
                                         <div
                                             class="avatar avatar-xl bg-gradient-warning text-white rounded-circle d-flex align-items-center justify-content-center">
-                                            {{ strtoupper(substr($customer->name ?? $customer->user->name ?? 'C', 0, 1)) }}
+                                            {{ strtoupper(substr($customer->name ?? $customer->user?->name ?? 'C', 0, 1)) }}
                                         </div>
                                     </div>
                                     <div class="col">
                                         <h2 class="mb-1 fw-bold">{{ $customer->user?->name ?? $customer->name ?? 'N/A' }}</h2>
-                                        <p class="mb-2 text-muted fs-5">{{ $customer->user?->email ?? 'No email available' }}</p>
+                                        <p class="mb-2 text-muted fs-5">{{ $customer?->email ?? 'No email available' }}</p>
                                         @if ($customer->phone)
                                             <p class="mb-0">
                                                 <i class="fas fa-mobile-alt me-2 text-muted"></i>
@@ -69,7 +69,7 @@
                                                         <i class="fas fa-user text-warning fs-5"></i>
                                                     </div>
                                                     <div>
-                                                        <h6 class="mb-1 fw-bold">{{ $customer->name ?? $customer->user->name }}</h6>
+                                                        <h6 class="mb-1 fw-bold">{{ $customer->name ?? $customer->user?->name }}</h6>
                                                         <small class="text-muted">Contact Name</small>
                                                     </div>
                                                 </div>

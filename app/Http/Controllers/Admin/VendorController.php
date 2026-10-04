@@ -4,11 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Vendor;
-use App\Models\User;
-use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Hash;
 
 class VendorController extends Controller
 {
@@ -80,7 +77,7 @@ class VendorController extends Controller
         $request->validate([
             // "Contact Name" — primary identifier for the vendor
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email|unique:vendors,email',
             // "Mobile Number" — digits only, no signs/decimals/spaces/special chars
             'phone' => ['nullable', 'digits_between:10,15', 'regex:/^[0-9]+$/'],
             'particulars' => 'nullable|string|max:255',
@@ -97,15 +94,8 @@ class VendorController extends Controller
             'gst_no.regex' => 'GST No must be a valid GSTIN (e.g. 22AAAAA0000A1Z5).',
         ]);
 
-        // Create user
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make('vendor123'), // Default, force change
-        ]);
-
-        // Create vendor — vendor_type comes from the route group, not the form
-        $vendor = $user->vendor()->create([
+        // Create vendor independently — no User account required
+        $vendor = Vendor::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
@@ -152,7 +142,7 @@ class VendorController extends Controller
         $request->validate([
             // "Contact Name" — primary identifier for the vendor
             'name' => 'required|string|max:255',
-            'email' => ['required', 'email', Rule::unique('users')->ignore($vendor->user_id)],
+            'email' => ['required', 'email', Rule::unique('vendors')->ignore($vendor->id)],
             // "Mobile Number" — digits only, no signs/decimals/spaces/special chars
             'phone' => ['nullable', 'digits_between:10,15', 'regex:/^[0-9]+$/'],
             'particulars' => 'nullable|string|max:255',
@@ -169,12 +159,9 @@ class VendorController extends Controller
             'gst_no.regex' => 'GST No must be a valid GSTIN (e.g. 22AAAAA0000A1Z5).',
         ]);
 
-        $vendor->user->update([
+        $vendor->update([
             'name' => $request->name,
             'email' => $request->email,
-        ]);
-
-        $vendor->update([
             'phone' => $request->phone,
             'particulars' => $request->particulars,
             'address' => $request->address,
@@ -207,20 +194,79 @@ class VendorController extends Controller
     }
 
     /**
-     * Delete vendor.
+     * Display the trashed (soft-deleted) vendors.
+     */
+    public function trash()
+    {
+        [$type, $typeParam] = $this->typeContext();
+
+        $vendors = Vendor::onlyTrashed()
+            ->with(['user' => function ($q) {
+                $q->withTrashed();
+            }])
+            ->where('vendor_type', $type)
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(15);
+
+        $view = $type === 'SUB VENDOR' ? 'admin.vendors.sub.trash' : 'admin.vendors.foundry.trash';
+        return view($view, compact('vendors', 'type', 'typeParam'));
+    }
+
+    /**
+     * Restore a soft-deleted vendor (and its linked user account).
+     */
+    public function restore(Vendor $vendor)
+    {
+        [$type, $typeParam] = $this->typeContext();
+
+        $vendor->restore();
+
+        // Restore linked user if one happens to exist (optional linkage)
+        if ($vendor->user) {
+            $vendor->user()->withTrashed()->restore();
+        }
+
+        return redirect()->route($typeParam . '-vendors.trash')
+            ->with('success', ($type === 'SUB VENDOR' ? 'Sub Vendor' : 'Foundry') . ' restored successfully!');
+    }
+
+    /**
+     * Permanently delete a vendor (only from trash).
+     */
+    public function forceDelete(Vendor $vendor)
+    {
+        [$type, $typeParam] = $this->typeContext();
+
+        try {
+            if ($vendor->user) {
+                $vendor->user()->forceDelete();
+            }
+            $vendor->forceDelete();
+
+            return redirect()->route($typeParam . '-vendors.trash')
+                ->with('success', ($type === 'SUB VENDOR' ? 'Sub Vendor' : 'Foundry') . ' permanently deleted!');
+        } catch (\Exception $e) {
+            return redirect()->route($typeParam . '-vendors.trash')
+                ->with('error', 'Cannot permanently delete — it is referenced by other records.');
+        }
+    }
+
+    /**
+     * Delete vendor (soft delete) together with its linked user account.
      */
     public function destroy(Vendor $vendor)
     {
         try {
-            $vendor->user->delete();
+            // User linkage is optional — only delete the linked user if present
+            if ($vendor->user) {
+                $vendor->user->delete();
+            }
+
             $vendor->delete();
-            return response()->json(['status' => true,'message' => 'Vendor deleted successfully!']);
+            return response()->json(['status' => true,'message' => 'Vendor deleted successfully! You can restore it from trash.']);
         } catch (\Exception $e) {
             return response()->json(['status' => false,'message' => 'Failed to delete vendor.']);
         }
-
-        // return redirect()->route('vendors.index')
-        //     ->with('success', 'Vendor deleted successfully!');
     }
 }
 

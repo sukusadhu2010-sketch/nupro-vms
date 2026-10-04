@@ -29,7 +29,9 @@ class SalesOrderController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('admin.sales-orders.create', compact('quotations'));
+        $nextJobNumber = app(\App\Services\JobNumberService::class)->generate();
+
+        return view('admin.sales-orders.create', compact('quotations', 'nextJobNumber'));
     }
 
     /**
@@ -54,8 +56,14 @@ class SalesOrderController extends Controller
 
         try {
             $salesOrder = $this->salesOrderService->convertToOrder($quotation, [
-                'po_number' => $request->input('po_number'),
-                'job_number' => $request->input('job_number'),
+                'job_number' => $request->input('job_number'), // optional; auto-generated when omitted
+                'customer_po_number' => $request->input('customer_po_number'),
+                'customer_po_date' => $request->input('customer_po_date'),
+                'mtc' => $request->boolean('mtc'),
+                'pdi' => $request->boolean('pdi'),
+                'delivery_target_date' => $request->input('delivery_target_date'),
+                'payment_mode' => $request->input('payment_mode'),
+                'credit_days' => $request->input('credit_days'),
             ]);
 
             return redirect()
@@ -130,16 +138,28 @@ class SalesOrderController extends Controller
         // Not locked yet - allow full editing
         $request->validate([
             'status' => 'required|in:draft,confirmed,processing,shipped,delivered,cancelled',
-            'po_number' => 'nullable|string|max:255',
             'job_number' => 'nullable|string|max:255',
+            'customer_po_number' => 'nullable|string|max:255',
+            'customer_po_date' => 'nullable|date',
+            'mtc' => 'nullable|boolean',
+            'pdi' => 'nullable|boolean',
+            'delivery_target_date' => 'nullable|date|after_or_equal:today',
+            'payment_mode' => 'nullable|in:' . implode(',', SalesOrder::PAYMENT_MODES),
+            'credit_days' => 'nullable|integer|min:1|max:365|required_if:payment_mode,lc,credit',
             'shipping_address' => 'nullable|string|max:2000',
             'expected_delivery_date' => 'nullable|date|after_or_equal:today',
         ]);
 
         $salesOrder->update($request->only([
             'status',
-            'po_number',
             'job_number',
+            'customer_po_number',
+            'customer_po_date',
+            'mtc',
+            'pdi',
+            'delivery_target_date',
+            'payment_mode',
+            'credit_days',
             'shipping_address',
             'expected_delivery_date',
         ]));

@@ -4,12 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use App\Models\User;
-use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class CustomerController extends Controller
 {
@@ -55,8 +51,8 @@ class CustomerController extends Controller
     private function validateCustomer(Request $request, ?Customer $customer = null): array
     {
         $uniqueEmail = $customer
-            ? Rule::unique('users')->ignore($customer->user_id)
-            : 'unique:users,email';
+            ? Rule::unique('customers')->ignore($customer->id)
+            : 'unique:customers,email';
 
         return $request->validate([
             'name' => 'required|string|max:255',
@@ -76,21 +72,8 @@ class CustomerController extends Controller
     {
         $validated = $this->validateCustomer($request);
 
-        // Create user
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make('customer123'), // Default, force change
-        ]);
-
-        // Assign customer role (assuming role_id = 3)
-        $customerRole = Role::where('name', 'customer')->first();
-        if ($customerRole) {
-            $user->roles()->attach($customerRole->id);
-        }
-
-        // Create customer
-        $customer = $user->customer()->create($request->only([
+        // Create customer independently — no User account required
+        $customer = Customer::create($request->only([
             'name', 'email', 'phone', 'gst_no', 'address', 'status'
         ]));
 
@@ -123,13 +106,8 @@ class CustomerController extends Controller
     {
         $this->validateCustomer($request, $customer);
 
-        $customer->user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
-
         $customer->update($request->only([
-            'name', 'phone', 'gst_no', 'address', 'status'
+            'name', 'email', 'phone', 'gst_no', 'address', 'status'
         ]));
 
         return redirect()->route('customers.index')
@@ -165,15 +143,69 @@ class CustomerController extends Controller
     }
 
     /**
-     * Delete customer.
+     * Display the trashed (soft-deleted) customers.
+     */
+    public function trash()
+    {
+        $customers = Customer::onlyTrashed()
+            ->with(['user' => function ($q) {
+                $q->withTrashed();
+            }])
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(15);
+
+        return view('admin.customers.trash', compact('customers'));
+    }
+
+    /**
+     * Restore a soft-deleted customer (and its linked user account).
+     */
+    public function restore(Customer $customer)
+    {
+        $customer->restore();
+
+        // Restore linked user if one happens to exist (optional linkage)
+        if ($customer->user) {
+            $customer->user()->withTrashed()->restore();
+        }
+
+        return redirect()->route('customers.trash')
+            ->with('success', 'Customer restored successfully!');
+    }
+
+    /**
+     * Permanently delete a customer (only from trash).
+     */
+    public function forceDelete(Customer $customer)
+    {
+        try {
+            if ($customer->user) {
+                $customer->user()->forceDelete();
+            }
+            $customer->forceDelete();
+
+            return redirect()->route('customers.trash')
+                ->with('success', 'Customer permanently deleted!');
+        } catch (\Exception $e) {
+            return redirect()->route('customers.trash')
+                ->with('error', 'Cannot permanently delete this customer — it is referenced by other records.');
+        }
+    }
+
+    /**
+     * Delete customer (soft delete) together with its linked user account.
      */
     public function destroy(Customer $customer)
     {
-        $customer->user->delete();
+        // User linkage is optional — only delete the linked user if present
+        if ($customer->user) {
+            $customer->user->delete();
+        }
+
         $customer->delete();
 
         return redirect()->route('customers.index')
-            ->with('success', 'Customer deleted successfully!');
+            ->with('success', 'Customer deleted successfully! You can restore it from trash.');
     }
 }
 

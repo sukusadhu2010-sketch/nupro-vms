@@ -50,9 +50,14 @@
                             </div>
 
                             <div class="col-md-2">
-                                <a href="{{ route('users.create') }}" class="btn btn-primary">
-                                    <i class="fas fa-plus me-2"></i>New User
-                                </a>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('users.trash') }}" class="btn btn-outline-danger">
+                                        <i class="fas fa-trash me-2"></i>Trash
+                                    </a>
+                                    <a href="{{ route('users.create') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>New User
+                                    </a>
+                                </div>
                             </div>
                         </form>
                     </div>

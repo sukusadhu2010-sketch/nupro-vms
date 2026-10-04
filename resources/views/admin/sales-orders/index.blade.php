@@ -39,7 +39,10 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Order #</th>
+                                        <th>Job #</th>
                                         <th>Customer</th>
+                                        <th>Customer PO Number</th>
+                                        <th>Payment Mode</th>
                                         <th>Total</th>
                                         <th>Status</th>
                                         <th>Expected Delivery</th>
@@ -53,10 +56,13 @@
                                             <td><span
                                                     class="badge bg-primary px-3 py-2 rounded-pill">{{ $order->order_number }}</span>
                                             </td>
+                                            <td><small class="text-muted">{{ $order->job_number ?? '—' }}</small></td>
                                             <td>
                                                 <div class="fw-bold">{{ $order->customer->name ?? 'N/A' }}</div>
                                                 <small class="text-muted">{{ $order->customer->email ?? '' }}</small>
                                             </td>
+                                            <td>{{ $order->customer_po_number ?? '—' }}</td>
+                                            <td>{{ $order->payment_mode_label }}</td>
                                             <td><strong
                                                     class="text-success">{{ number_format($order->total_amount, 2) }}</strong>
                                             </td>
@@ -91,7 +97,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="7" class="text-center text-muted py-4">No sales orders found.
+                                            <td colspan="10" class="text-center text-muted py-4">No sales orders found.
                                             </td>
                                         </tr>
                                     @endforelse

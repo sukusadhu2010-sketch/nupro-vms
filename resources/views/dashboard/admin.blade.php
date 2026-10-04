@@ -27,7 +27,16 @@
                     <div class="card-body text-center">
                         <i class="fas fa-truck fa-3x text-success mb-3"></i>
                         <h3 class="h4 fw-bold">{{ $stats['total_vendors'] }}</h3>
-                        <p class="text-muted mb-0">Vendors</p>
+                        <p class="text-muted mb-0">Foundries</p>
+                    </div>
+                </div>
+            </div>
+             <div class="col-lg-3 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-crown fa-3x text-warning mb-3"></i>
+                        <h3 class="h4 fw-bold">{{ $stats['total_sub_vendors'] }}</h3>
+                        <p class="text-muted mb-0">Sub-Vendors</p>
                     </div>
                 </div>
             </div>
@@ -40,15 +49,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center">
-                        <i class="fas fa-crown fa-3x text-warning mb-3"></i>
-                        <h3 class="h4 fw-bold">{{ $stats['total_roles'] }}</h3>
-                        <p class="text-muted mb-0">Roles</p>
-                    </div>
-                </div>
-            </div>
+           
         </div>
 
         <!-- Recent Activity / Tables -->
@@ -92,16 +93,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2 text-info"></i>Role Distribution</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="roleChart" height="200"></canvas>
-                    </div>
-                </div>
-            </div>
+            
         </div>
     </div>
 

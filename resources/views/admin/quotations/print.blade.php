@@ -109,7 +109,7 @@
         .print-seal {
             position: fixed;
             bottom: 28mm;
-            right: 20mm;
+            /* right: 20mm; */
             width: 32mm;
             opacity: 0.9;
             z-index: 50;

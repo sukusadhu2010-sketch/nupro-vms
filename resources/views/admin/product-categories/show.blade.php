@@ -60,8 +60,8 @@
                         </div>
 
                         <!-- Products in this category -->
-                        <h5 class="fw-bold mb-3"><i class="fas fa-boxes me-2 text-info"></i>Products in this Category</h5>
-                        <div class="table-responsive">
+                        <!-- <h5 class="fw-bold mb-3"><i class="fas fa-boxes me-2 text-info"></i>Products in this Category</h5> -->
+                        <div class="table-responsive d-none">
                             <table class="table table-hover">
                                 <thead class="table-light">
                                     <tr>

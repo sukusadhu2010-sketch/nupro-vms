@@ -127,8 +127,8 @@
                                             class="form-select form-select-lg @error('status') is-invalid @enderror"
                                             required>
                                             <option value="">Select Status</option>
-                                            <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>
-                                                Pending Approval</option>
+                                            <!-- <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>
+                                                Pending Approval</option> -->
                                             <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>
                                                 Active</option>
                                             <option value="suspended"

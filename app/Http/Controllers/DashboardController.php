@@ -27,7 +27,8 @@ class DashboardController extends Controller
             // Admin Dashboard Data
             $data['stats'] = [
                 'total_users' => User::count(),
-                'total_vendors' => Vendor::count(),
+                'total_vendors' => Vendor::where('vendor_type','FOUNDRY')->count(),
+                'total_sub_vendors' => Vendor::where('vendor_type','SUB VENDOR')->count(),
                 'total_customers' => Customer::count(),
                 'total_roles' => Role::count(),
                 'pending_vendors' => Vendor::where('status', 'pending')->count(),

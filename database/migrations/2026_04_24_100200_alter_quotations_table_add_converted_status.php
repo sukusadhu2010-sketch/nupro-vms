@@ -8,12 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE quotations MODIFY COLUMN status ENUM('draft', 'sent', 'accepted', 'expired', 'revised', 'converted') DEFAULT 'draft'");
+        // MySQL-only raw ENUM widening — skip on other drivers (e.g. sqlite in tests)
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE quotations MODIFY COLUMN status ENUM('draft', 'sent', 'accepted', 'expired', 'revised', 'converted') DEFAULT 'draft'");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE quotations MODIFY COLUMN status ENUM('draft', 'sent', 'accepted', 'expired', 'revised') DEFAULT 'draft'");
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE quotations MODIFY COLUMN status ENUM('draft', 'sent', 'accepted', 'expired', 'revised') DEFAULT 'draft'");
+        }
     }
 };
 

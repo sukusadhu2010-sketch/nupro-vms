@@ -120,12 +120,12 @@
                             <i class="fas fa-file-invoice-dollar me-2"></i><span class="sidebar-text">Quotations</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('quotation-forms.*') ? 'active' : '' }}"
                             href="{{ route('quotation-forms.index') }}">
                             <i class="fas fa-file-signature me-2"></i><span class="sidebar-text">Quotation Forms</span>
                         </a>
-                    </li>
+                    </li> -->
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('sales-orders.*') ? 'active' : '' }}"
                             href="{{ route('sales-orders.index') }}">

@@ -77,21 +77,36 @@ Route::middleware(['auth'])->group(function () {
 // Admin Routes
 Route::middleware(['auth'])->group(function () {
   //  Route::resource('admin.enquiries', \App\Http\Controllers\Admin\EnquiryController::class);
+    Route::get('users/trash', [UserController::class, 'trash'])->name('users.trash');
     Route::resource('users', UserController::class);
+    Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
+    Route::delete('users/{user}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
     // Legacy combined vendor management (kept for compatibility)
     Route::resource('vendors', VendorController::class);
     Route::post('vendors/{vendor}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
 
     // Foundry Management
+    Route::get('foundry-vendors/trash', [VendorController::class, 'trash'])->name('foundry-vendors.trash');
     Route::resource('foundry-vendors', VendorController::class)->parameters(['foundry-vendors' => 'vendor'])->names('foundry-vendors');
+    Route::post('foundry-vendors/{vendor}/restore', [VendorController::class, 'restore'])->name('foundry-vendors.restore');
+    Route::delete('foundry-vendors/{vendor}/force-delete', [VendorController::class, 'forceDelete'])->name('foundry-vendors.force-delete');
     Route::post('foundry-vendors/{vendor}/toggle-status', [VendorController::class, 'toggleStatus'])->name('foundry-vendors.toggle-status');
 
     // Sub Vendor Management
+    Route::get('sub-vendors/trash', [VendorController::class, 'trash'])->name('sub-vendors.trash');
     Route::resource('sub-vendors', VendorController::class)->parameters(['sub-vendors' => 'vendor'])->names('sub-vendors');
+    Route::post('sub-vendors/{vendor}/restore', [VendorController::class, 'restore'])->name('sub-vendors.restore');
+    Route::delete('sub-vendors/{vendor}/force-delete', [VendorController::class, 'forceDelete'])->name('sub-vendors.force-delete');
     Route::post('sub-vendors/{vendor}/toggle-status', [VendorController::class, 'toggleStatus'])->name('sub-vendors.toggle-status');
+    Route::get('customers/trash', [CustomerController::class, 'trash'])->name('customers.trash');
     Route::resource('customers', CustomerController::class);
+    Route::post('customers/{customer}/restore', [CustomerController::class, 'restore'])->name('customers.restore');
+    Route::delete('customers/{customer}/force-delete', [CustomerController::class, 'forceDelete'])->name('customers.force-delete');
     Route::post('customers/{customer}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
+    Route::get('products/trash', [ProductController::class, 'trash'])->name('products.trash');
     Route::resource('products', ProductController::class);
+    Route::post('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore');
+    Route::delete('products/{product}/force-delete', [ProductController::class, 'forceDelete'])->name('products.force-delete');
     Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
     Route::resource('product-categories', ProductCategoryController::class);
     Route::post('product-categories/{product_category}/toggle-status', [ProductCategoryController::class, 'toggleStatus'])->name('product-categories.toggle-status');
