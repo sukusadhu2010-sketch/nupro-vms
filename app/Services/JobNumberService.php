@@ -60,4 +60,34 @@ class JobNumberService
 
         return substr((string) $start, -2) . substr((string) ($start + 1), -2);
     }
+
+    /**
+     * Generate the next unique Sales Order Number in the format
+     * SO-<Year>-<SequenceNumber>, e.g. SO-2026-0019.
+     *
+     * Uses a pessimistic lock so concurrent creation cannot duplicate
+     * the sequence number (fixes duplicate 'SO-YYYY-####' errors that
+     * occurred when the number was derived from the quotation ID).
+     */
+    public function generateOrderNumber(): string
+    {
+        return DB::transaction(function () {
+            $prefix = 'SO-' . now()->format('Y') . '-';
+
+            $max = (int) SalesOrder::where('order_number', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->max('order_number');
+
+            $next = $max ? ((int) substr($max, strlen($prefix)) + 1) : 1;
+
+            // Ensure uniqueness even if legacy rows hold out-of-order numbers.
+            $number = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+            while (SalesOrder::where('order_number', $number)->exists()) {
+                $next++;
+                $number = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+            }
+
+            return $number;
+        });
+    }
 }

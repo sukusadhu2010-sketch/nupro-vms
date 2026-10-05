@@ -33,13 +33,16 @@ class SalesOrderService
             $enquiry = $quotation->enquiry;
             $customer = $enquiry->customer;
 
-            $orderNumber = 'SO-' . date('Y') . '-' . str_pad($quotation->id, 4, '0', STR_PAD_LEFT);
+            // Generate within the outer transaction so the row lock and the
+            // insert are atomic — no concurrent request can take the same number.
+            $orderNumber = $this->jobNumberService->generateOrderNumber();
+            $jobNumber = $extra['job_number'] ?? $this->jobNumberService->generate();
 
             $salesOrder = SalesOrder::create([
                 'quotation_id' => $quotation->id,
                 'customer_id' => $customer->id,
                 'order_number' => $orderNumber,
-                'job_number' => $extra['job_number'] ?? $this->jobNumberService->generate(),
+                'job_number' => $jobNumber,
                 'customer_po_number' => $extra['customer_po_number'] ?? null,
                 'customer_po_date' => $extra['customer_po_date'] ?? null,
                 'mtc' => $extra['mtc'] ?? false,
