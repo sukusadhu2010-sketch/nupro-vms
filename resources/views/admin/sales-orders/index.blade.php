@@ -32,6 +32,131 @@
                     </div>
                 @endif
 
+                <!-- Advanced Filters (Collapsible) -->
+                <div class="card shadow-sm border-0 rounded-3 mb-3">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center"
+                        data-bs-toggle="collapse" data-bs-target="#filtersCard" role="button"
+                        aria-expanded="true">
+                        <span class="fw-bold"><i class="fas fa-filter me-2 text-primary"></i>Advanced Filters</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="collapse show" id="filtersCard">
+                        <div class="card-body">
+                            <form id="filtersForm" method="GET" action="{{ route('sales-orders.index') }}">
+                                <div class="row g-3">
+                                    <!-- Date Range -->
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Date Type</label>
+                                        <select name="date_field" class="form-select form-select-sm">
+                                            <option value="customer_po_date" {{ ($filters['date_field'] ?? '') === 'customer_po_date' ? 'selected' : '' }}>PO Date</option>
+                                            <option value="created_at" {{ ($filters['date_field'] ?? '') === 'created_at' ? 'selected' : '' }}>Created Date</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">From Date</label>
+                                        <input type="date" name="date_from" class="form-control form-control-sm"
+                                            value="{{ $filters['date_from'] ?? '' }}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">To Date</label>
+                                        <input type="date" name="date_to" class="form-control form-control-sm"
+                                            value="{{ $filters['date_to'] ?? '' }}">
+                                    </div>
+                                    <!-- Status -->
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Status</label>
+                                        <select name="status" class="form-select form-select-sm">
+                                            @foreach (['all' => 'All', 'draft' => 'Pending', 'confirmed' => 'Confirmed', 'processing' => 'In Progress', 'shipped' => 'Shipped', 'delivered' => 'Completed', 'cancelled' => 'Cancelled'] as $value => $label)
+                                                <option value="{{ $value }}" {{ ($filters['status'] ?? 'all') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <!-- Customer -->
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Customer</label>
+                                        <select name="customer_id" id="customerFilter" class="form-select form-select-sm" data-placeholder="Search customer...">
+                                            <option value=""></option>
+                                            @foreach ($customers as $customer)
+                                                <option value="{{ $customer->id }}" {{ ($filters['customer_id'] ?? '') == $customer->id ? 'selected' : '' }}>
+                                                    {{ $customer->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <!-- Project -->
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Project</label>
+                                        <select name="product_id" id="projectFilter" class="form-select form-select-sm" data-placeholder="Search project...">
+                                            <option value=""></option>
+                                            @foreach ($products as $product)
+                                                <option value="{{ $product->id }}" {{ ($filters['product_id'] ?? '') == $product->id ? 'selected' : '' }}>
+                                                    {{ $product->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <!-- Job No -->
+                                    <!-- <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Our Job No</label>
+                                        <input type="text" name="job_number" class="form-control form-control-sm" placeholder="Search..."
+                                            value="{{ $filters['job_number'] ?? '' }}">
+                                    </div> -->
+                                    <!-- PO No -->
+                                    <!-- <div class="col-md-2">
+                                        <label class="form-label small fw-bold">PO No</label>
+                                        <input type="text" name="po_no" class="form-control form-control-sm" placeholder="Search..."
+                                            value="{{ $filters['po_no'] ?? '' }}">
+                                    </div> -->
+                                    <!-- Remarks -->
+                                    <!-- <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Remarks</label>
+                                        <input type="text" name="remarks" class="form-control form-control-sm" placeholder="Keyword..."
+                                            value="{{ $filters['remarks'] ?? '' }}">
+                                    </div> -->
+                                    <!-- Actions -->
+                                    <div class="col-md-4 d-flex align-items-end gap-2">
+                                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                                            <i class="fas fa-search me-1"></i>Apply
+                                        </button>
+                                        <a href="{{ route('sales-orders.index') }}" class="btn btn-secondary btn-sm w-100">
+                                            <i class="fas fa-rotate-left me-1"></i>Reset
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar: count + exports -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <span class="badge bg-light text-dark border px-3 py-2">
+                            <i class="fas fa-list-ol me-1 text-primary"></i>
+                            Total Records: <strong>{{ $totalRecords }}</strong>
+                        </span>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{{ route('sales-orders.export.excel', request()->only(['date_from', 'date_to', 'date_field', 'status', 'customer_id', 'product_id', 'job_number', 'po_no', 'remarks'])) }}"
+                            class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-file-excel me-2"></i>Export Excel
+                        </a>
+                        <a href="{{ route('sales-orders.export.pdf', request()->only(['date_from', 'date_to', 'date_field', 'status', 'customer_id', 'product_id', 'job_number', 'po_no', 'remarks'])) }}"
+                            class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-file-pdf me-2"></i>Export PDF
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Loading overlay -->
+                <div id="loadingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100"
+                    style="background: rgba(0,0,0,0.35); z-index: 1050;">
+                    <div class="position-absolute top-50 start-50 translate-middle text-white text-center">
+                        <div class="spinner-border text-light mb-2" role="status" style="width: 3rem; height: 3rem;"></div>
+                        <div class="fw-semibold">Please wait...</div>
+                    </div>
+                </div>
+
                 <div class="card shadow-lg border-0 rounded-3">
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -115,3 +240,31 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Select2 searchable dropdowns
+        if (window.jQuery && window.jQuery.fn.select2) {
+            jQuery('#customerFilter, #projectFilter').select2({
+                width: '100%',
+                allowClear: true,
+                dropdownAutoWidth: true
+            });
+        }
+
+        // Loading indicator during filter/apply and exports
+        const overlay = document.getElementById('loadingOverlay');
+        const showLoading = () => overlay && overlay.classList.remove('d-none');
+
+        const filtersForm = document.getElementById('filtersForm');
+        if (filtersForm) {
+            filtersForm.addEventListener('submit', showLoading);
+        }
+
+        document.querySelectorAll('a[href*="sales-orders-export"]').forEach(link => {
+            link.addEventListener('click', showLoading);
+        });
+    });
+</script>
+@endpush

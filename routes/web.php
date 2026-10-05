@@ -117,6 +117,8 @@ Route::middleware(['auth'])->group(function () {
 // Sales Order Routes
 Route::middleware(['auth'])->group(function () {
     Route::resource('sales-orders', SalesOrderController::class);
+    Route::get('sales-orders-export/excel', [SalesOrderController::class, 'exportExcel'])->name('sales-orders.export.excel');
+    Route::get('sales-orders-export/pdf', [SalesOrderController::class, 'exportPdf'])->name('sales-orders.export.pdf');
     Route::post('sales-orders/{salesOrder}/procure', [\App\Http\Controllers\Admin\ProcurementController::class, 'generate'])->name('sales-orders.procure');
 });
 

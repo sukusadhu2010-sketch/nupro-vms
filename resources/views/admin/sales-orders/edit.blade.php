@@ -84,6 +84,10 @@
                                         <td>{{ $salesOrder->pdi ? 'Yes' : 'No' }}</td>
                                     </tr>
                                     <tr>
+                                        <th>SD/PBG</th>
+                                        <td>{{ $salesOrder->sd_pbg ? 'Yes' : 'No' }}</td>
+                                    </tr>
+                                    <tr>
                                         <th>Delivery Target Date</th>
                                         <td>{{ $salesOrder->delivery_target_date?->format('Y-m-d') ?? '—' }}</td>
                                     </tr>
@@ -205,6 +209,19 @@
                                             <input class="form-check-input" type="radio" name="pdi" id="pdi_no" value="0"
                                                 {{ old('pdi', $salesOrder->pdi ? 1 : 0) == 0 ? 'checked' : '' }}>
                                             <label class="form-check-label" for="pdi_no">No</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label fw-bold d-block">SD/PBG</label>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="sd_pbg" id="sd_pbg_yes" value="1"
+                                                {{ old('sd_pbg', $salesOrder->sd_pbg ? 1 : 0) == 1 ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="sd_pbg_yes">Yes</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="sd_pbg" id="sd_pbg_no" value="0"
+                                                {{ old('sd_pbg', $salesOrder->sd_pbg ? 1 : 0) == 0 ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="sd_pbg_no">No</label>
                                         </div>
                                     </div>
                                     <div class="col-md-3 mb-3">

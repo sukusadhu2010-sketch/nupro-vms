@@ -108,6 +108,19 @@
                                     </div>
                                 </div>
                                 <div class="col-md-3 mb-3">
+                                    <label class="form-label fw-bold d-block">SD/PBG</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sd_pbg" id="sd_pbg_yes" value="1"
+                                            {{ old('sd_pbg') == 1 ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="sd_pbg_yes">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sd_pbg" id="sd_pbg_no" value="0"
+                                            {{ old('sd_pbg') !== '1' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="sd_pbg_no">No</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
                                     <label for="delivery_target_date" class="form-label fw-bold">Delivery Target Date</label>
                                     <input type="date" name="delivery_target_date" id="delivery_target_date" class="form-control"
                                         value="{{ old('delivery_target_date') }}">

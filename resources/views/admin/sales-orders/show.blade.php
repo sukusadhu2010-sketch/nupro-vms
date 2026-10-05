@@ -95,6 +95,10 @@
                                         <td>{{ $salesOrder->pdi ? 'Yes' : 'No' }}</td>
                                     </tr>
                                     <tr>
+                                        <th>SD/PBG</th>
+                                        <td>{{ $salesOrder->sd_pbg ? 'Yes' : 'No' }}</td>
+                                    </tr>
+                                    <tr>
                                         <th>Delivery Target Date</th>
                                         <td>{{ $salesOrder->delivery_target_date?->format('Y-m-d') ?? '—' }}</td>
                                     </tr>

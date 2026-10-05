@@ -20,6 +20,7 @@ class SalesOrder extends Model
         'customer_po_date',
         'mtc',
         'pdi',
+        'sd_pbg',
         'delivery_target_date',
         'payment_mode',
         'credit_days',
@@ -37,6 +38,7 @@ class SalesOrder extends Model
         'delivery_target_date' => 'date',
         'mtc' => 'boolean',
         'pdi' => 'boolean',
+        'sd_pbg' => 'boolean',
     ];
 
     public function quotation(): BelongsTo

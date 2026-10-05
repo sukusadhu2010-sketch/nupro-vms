@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSalesOrderRequest;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use App\Services\SalesOrderExportService;
 use App\Services\SalesOrderService;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class SalesOrderController extends Controller
 {
@@ -37,13 +39,114 @@ class SalesOrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $salesOrders = SalesOrder::with(['customer', 'items.product'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $filters = $this->extractFilters($request);
 
-        return view('admin.sales-orders.index', compact('salesOrders'));
+        $salesOrders = $this->applyFilters(SalesOrder::query(), $filters)
+            ->with(['customer', 'items.product.productCategory'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        $totalRecords = $salesOrders->total();
+
+        $customers = \App\Models\Customer::orderBy('name')->get(['id', 'name']);
+        $products  = \App\Models\Product::orderBy('name')->get(['id', 'name']);
+
+        return view('admin.sales-orders.index', compact(
+            'salesOrders', 'totalRecords', 'customers', 'products', 'filters'
+        ));
+    }
+
+    /**
+     * Pull & normalise filter inputs from the request.
+     */
+    private function extractFilters(Request $request): array
+    {
+        return array_filter([
+            'date_from'   => $request->input('date_from'),
+            'date_to'     => $request->input('date_to'),
+            'date_field'  => $request->input('date_field', 'customer_po_date') === 'created_at' ? 'created_at' : 'customer_po_date',
+            'status'      => $request->input('status') === 'all' ? null : $request->input('status'),
+            'customer_id' => $request->filled('customer_id') ? (int) $request->input('customer_id') : null,
+            'product_id'  => $request->filled('product_id') ? (int) $request->input('product_id') : null,
+            'job_number'  => $request->input('job_number'),
+            'po_no'       => $request->input('po_no'),
+            'remarks'     => $request->input('remarks'),
+        ], fn ($value) => $value !== null && $value !== '');
+    }
+
+    /**
+     * Apply all filters to a SalesOrder query (server-side, composable).
+     */
+    private function applyFilters($query, array $filters)
+    {
+        if (! empty($filters['date_from'])) {
+            $query->whereDate($filters['date_field'] ?? 'customer_po_date', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->whereDate($filters['date_field'] ?? 'customer_po_date', '<=', $filters['date_to']);
+        }
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['customer_id'])) {
+            $query->where('customer_id', $filters['customer_id']);
+        }
+
+        if (! empty($filters['product_id'])) {
+            $query->whereHas('items', fn ($q) => $q->where('product_id', $filters['product_id']));
+        }
+
+        if (! empty($filters['job_number'])) {
+            $query->where('job_number', 'like', '%' . $filters['job_number'] . '%');
+        }
+
+        if (! empty($filters['po_no'])) {
+            $query->where('customer_po_number', 'like', '%' . $filters['po_no'] . '%');
+        }
+
+        if (! empty($filters['remarks'])) {
+            $query->whereHas('items.product', fn ($q) => $q->where('products.description', 'like', '%' . $filters['remarks'] . '%'));
+        }
+
+        return $query;
+    }
+
+    /**
+     * Export filtered records to Excel (.xlsx).
+     */
+    public function exportExcel(Request $request, SalesOrderExportService $exportService)
+    {
+        $filters = $this->extractFilters($request);
+
+        $salesOrders = $this->applyFilters(SalesOrder::query(), $filters)
+            ->with(['customer', 'items.product.productCategory'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $spreadsheet = $exportService->exportExcel($salesOrders, $filters, $salesOrders->count());
+
+        return $exportService->downloadExcel($spreadsheet);
+    }
+
+    /**
+     * Export filtered records to PDF (landscape, repeating header, page numbers).
+     */
+    public function exportPdf(Request $request, SalesOrderExportService $exportService)
+    {
+        $filters = $this->extractFilters($request);
+
+        $salesOrders = $this->applyFilters(SalesOrder::query(), $filters)
+            ->with(['customer', 'items.product.productCategory'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $exportService->exportPdf($salesOrders, $filters, $salesOrders->count());
     }
 
     /**
@@ -143,6 +246,7 @@ class SalesOrderController extends Controller
             'customer_po_date' => 'nullable|date',
             'mtc' => 'nullable|boolean',
             'pdi' => 'nullable|boolean',
+            'sd_pbg' => 'nullable|boolean',
             'delivery_target_date' => 'nullable|date|after_or_equal:today',
             'payment_mode' => 'nullable|in:' . implode(',', SalesOrder::PAYMENT_MODES),
             'credit_days' => 'nullable|integer|min:1|max:365|required_if:payment_mode,lc,credit',
@@ -157,6 +261,7 @@ class SalesOrderController extends Controller
             'customer_po_date',
             'mtc',
             'pdi',
+            'sd_pbg',
             'delivery_target_date',
             'payment_mode',
             'credit_days',

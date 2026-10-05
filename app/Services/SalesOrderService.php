@@ -44,6 +44,7 @@ class SalesOrderService
                 'customer_po_date' => $extra['customer_po_date'] ?? null,
                 'mtc' => $extra['mtc'] ?? false,
                 'pdi' => $extra['pdi'] ?? false,
+                'sd_pbg' => $extra['sd_pbg'] ?? false,
                 'delivery_target_date' => $extra['delivery_target_date'] ?? null,
                 'payment_mode' => $extra['payment_mode'] ?? null,
                 'credit_days' => $extra['credit_days'] ?? null,
