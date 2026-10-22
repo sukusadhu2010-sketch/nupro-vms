@@ -29,6 +29,12 @@ class SalesOrderService
             throw new QuotationAlreadyConvertedException();
         }
 
+        if ($quotation->status !== 'accepted') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quotation_id' => 'Only quotations with the "Accepted" status can be converted into a Sales Order.',
+            ]);
+        }
+
         return DB::transaction(function () use ($quotation, $extra) {
             $enquiry = $quotation->enquiry;
             $customer = $enquiry->customer;

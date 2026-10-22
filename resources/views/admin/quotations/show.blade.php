@@ -326,7 +326,7 @@
                             </form>
                         @endif
 
-                        @if ($quotation->status != 'accepted')
+                        @if (in_array($quotation->status, ['draft', 'sent']))
                             <a href="{{ route('quotations.revise', $quotation) }}"
                                 class="btn btn-warning btn-lg w-100 mb-2">
                                 <i class="fas fa-code-branch me-2"></i>Create Revision

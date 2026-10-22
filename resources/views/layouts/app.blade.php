@@ -138,6 +138,12 @@
                             <i class="fas fa-file-invoice me-2"></i><span class="sidebar-text">Procurements</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('sd-pbg.*') ? 'active' : '' }}"
+                            href="{{ route('sd-pbg.index') }}">
+                            <i class="fas fa-file-contract me-2"></i><span class="sidebar-text">SD/PBG Register</span>
+                        </a>
+                    </li>
                     <li class="nav-item my-2 border-top border-secondary"></li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('foundry-vendors.*') ? 'active' : '' }}"
@@ -157,6 +163,22 @@
                             <i class="fas fa-users me-2"></i><span class="sidebar-text">Users</span>
                         </a>
                     </li>
+                    @if (auth()->user()?->canAccess('roles') || auth()->user()?->hasRole('admin'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}"
+                            href="{{ route('roles.index') }}">
+                            <i class="fas fa-user-shield me-2"></i><span class="sidebar-text">Roles</span>
+                        </a>
+                    </li>
+                    @endif
+                    @if (auth()->user()?->canAccess('roles') || auth()->user()?->hasRole('admin'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}"
+                            href="{{ route('permissions.index') }}">
+                            <i class="fas fa-key me-2"></i><span class="sidebar-text">Permissions</span>
+                        </a>
+                    </li>
+                    @endif
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}"
                             href="{{ route('customers.index') }}">

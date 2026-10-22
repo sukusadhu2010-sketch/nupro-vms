@@ -65,10 +65,9 @@ class UserController extends Controller
 
         $user->roles()->attach($request->role_id);
 
-        if (in_array($request->role_id, [2, 3])) { // Vendor/Customer role IDs
-            $model = $request->role_id == 2 ? 'vendor' : 'customer';
-            $user->$model()->create(['status' => 'pending']);
-        }
+        // NOTE: User creation is independent. Customer / Foundry / Sub Vendor
+        // records are only created from their own modules and linked via
+        // mapping tables. No auto-creation here.
 
         return redirect()->route('users.index')
             ->with('success', 'User created successfully!');
@@ -133,13 +132,11 @@ class UserController extends Controller
     }
 
     /**
-     * Restore a soft-deleted user (and its linked vendor/customer profile).
+     * Restore a soft-deleted user.
      */
     public function restore(User $user)
     {
         $user->restore();
-        $user->vendor()->withTrashed()->restore();
-        $user->customer()->withTrashed()->restore();
 
         return redirect()->route('users.trash')
             ->with('success', 'User restored successfully!');
@@ -151,8 +148,6 @@ class UserController extends Controller
     public function forceDelete(User $user)
     {
         try {
-            $user->vendor()->forceDelete();
-            $user->customer()->forceDelete();
             $user->forceDelete();
 
             return redirect()->route('users.trash')
@@ -164,19 +159,16 @@ class UserController extends Controller
     }
 
     /**
-     * Delete user (soft delete) together with its linked vendor/customer profile.
+     * Delete user (soft delete).
      */
     public function destroy(User $user)
     {
         try {
-
-           $user->vendor?->delete();
-            $user->customer?->delete();
             $user->delete();
 
-         return response()->json(['status' => true,'message' => 'User deleted successfully! You can restore it from trash.']);
+            return response()->json(['status' => true, 'message' => 'User deleted successfully! You can restore it from trash.']);
         } catch (\Exception $e) {
-            return response()->json(['status' => false,'message' => 'Failed to delete user.']);
+            return response()->json(['status' => false, 'message' => 'Failed to delete user.']);
         }
     }
 }

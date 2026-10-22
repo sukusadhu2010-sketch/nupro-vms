@@ -39,17 +39,20 @@
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="form-label">P.O. Number <span class="text-danger">*</span></label>
-                                    <input type="text" name="po_number" class="form-control"
-                                        value="{{ old('po_number', 'PO-' . now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -4))) }}"
-                                        required>
+                                    <input type="text" name="po_number" class="form-control" id="poNumberInput"
+                                        value="{{ old('po_number', $foundryPoNumber ?? '') }}"
+                                        data-subvendor="{{ $subVendorPoNumber ?? '' }}"
+                                        data-foundry="{{ $foundryPoNumber ?? '' }}"
+                                        readonly>
+                                    <small class="text-muted">Auto-generated: NES/2026-27/0001 (Foundry) / NES/VPO/2026-27/0001 (Sub Vendor)</small>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Vendor <span class="text-danger">*</span></label>
-                                    <select name="vendor_id" class="form-select" required>
+                                    <select name="vendor_id" class="form-select select2" required>
                                         <option value="">Select Vendor</option>
                                         @foreach ($vendors as $vendor)
                                             <option value="{{ $vendor->id }}"
-                                                {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>{{ $vendor->name }}
+                                                {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>{{ $vendor->particulars }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -82,11 +85,21 @@
                                         value="{{ old('expected_delivery_date') }}">
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="form-label">Delivery Time</label>
+                                    <input type="text" name="delivery_time" class="form-control"
+                                        placeholder="e.g. 4:00 PM" value="{{ old('delivery_time') }}">
+                                </div>
+                                <div class="col-md-4">
                                     <label class="form-label">Status</label>
                                     <select name="status" class="form-select" disabled>
                                         <option value="draft" selected>Draft</option>
                                     </select>
                                     <small class="text-muted">New procurements always start as Draft.</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Delivery Time</label>
+                                    <input type="text" name="delivery_time" class="form-control"
+                                        placeholder="e.g. 4:00 PM" value="{{ old('delivery_time') }}">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Shipping Address</label>
@@ -191,6 +204,15 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 let rowIndex = 1;
+
+                            $(document).ready(function () {
+                $('.select2').select2({
+                    width: '100%',
+                    placeholder: 'Select Product',
+                    allowClear: true
+                });
+            });
+
                 const itemsTableBody = document.getElementById('itemsTableBody');
                 const salesOrderSelect = document.getElementById('salesOrderSelect');
 
@@ -238,6 +260,19 @@
                             alert('At least one item is required.');
                         }
                     });
+
+                    // Swap PO number format when the selected vendor type changes
+                    const vendorSelect = document.querySelector('select[name="vendor_id"]');
+                    const poInput = document.getElementById('poNumberInput');
+                    const subVendorIds = @json($vendors->where('vendor_type', 'SUB VENDOR')->pluck('id')->toArray());
+
+                    function refreshPoNumber() {
+                        if (!poInput || !vendorSelect) return;
+                        const isSubVendor = subVendorIds.includes(parseInt(vendorSelect.value));
+                        poInput.value = isSubVendor ? poInput.dataset.subvendor : poInput.dataset.foundry;
+                    }
+                    if (vendorSelect) vendorSelect.addEventListener('change', refreshPoNumber);
+                    refreshPoNumber();
                 }
 
                 function createItemRow(data, index) {

@@ -27,7 +27,6 @@ class SalesOrderController extends Controller
     {
         $quotations = \App\Models\Quotation::with('enquiry.customer')
             ->where('status', 'accepted')
-            ->orWhere('status', 'draft')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -156,6 +155,12 @@ class SalesOrderController extends Controller
     {
         $quotation = Quotation::with(['items', 'enquiry.customer'])
             ->findOrFail($request->quotation_id);
+
+        if (!in_array($quotation->status, ['accepted'])) {
+            return back()
+                ->withInput()
+                ->with('error', 'Only quotations with the "Accepted" status can be converted into a Sales Order.');
+        }
 
         try {
             $salesOrder = $this->salesOrderService->convertToOrder($quotation, [

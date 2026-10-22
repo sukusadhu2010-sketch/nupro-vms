@@ -112,6 +112,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('product-categories/{product_category}/toggle-status', [ProductCategoryController::class, 'toggleStatus'])->name('product-categories.toggle-status');
     Route::resource('units', UnitController::class);
     Route::post('units/{unit}/toggle-status', [UnitController::class, 'toggleStatus'])->name('units.toggle-status');
+
+    // Permission Management
+    Route::resource('permissions', \App\Http\Controllers\Admin\PermissionController::class);
+
+    // Role Management
+    Route::get('roles/data', [\App\Http\Controllers\Admin\RoleController::class, 'data'])->name('roles.data');
+    Route::get('roles/{role}/users', [\App\Http\Controllers\Admin\RoleController::class, 'users'])->name('roles.users');
+    Route::post('roles/{role}/toggle-status', [\App\Http\Controllers\Admin\RoleController::class, 'toggleStatus'])->name('roles.toggle-status');
+    Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
 });
 
 // Sales Order Routes
@@ -126,5 +135,15 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::resource('procurements', \App\Http\Controllers\Admin\ProcurementController::class);
     Route::post('procurements/{procurement}/update-status', [\App\Http\Controllers\Admin\ProcurementController::class, 'updateStatus'])->name('procurements.update-status');
+    Route::get('procurements/{procurement}/print', [\App\Http\Controllers\Admin\ProcurementController::class, 'print'])->name('procurements.print');
+    Route::get('procurements/{procurement}/pdf', [\App\Http\Controllers\Admin\ProcurementController::class, 'pdf'])->name('procurements.pdf');
+    Route::get('procurements/{procurement}/sub-vendor-print', [\App\Http\Controllers\Admin\ProcurementController::class, 'subVendorPrint'])->name('procurements.sub-vendor-print');
+    Route::get('procurements/{procurement}/sub-vendor-pdf', [\App\Http\Controllers\Admin\ProcurementController::class, 'subVendorPdf'])->name('procurements.sub-vendor-pdf');
+});
+
+// SD/PBG Register Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('sd-pbg-register', [\App\Http\Controllers\Admin\SdPbgRegisterController::class, 'index'])->name('sd-pbg.index');
+    Route::get('sd-pbg-register/export/excel', [\App\Http\Controllers\Admin\SdPbgRegisterController::class, 'exportExcel'])->name('sd-pbg.export.excel');
 });
 

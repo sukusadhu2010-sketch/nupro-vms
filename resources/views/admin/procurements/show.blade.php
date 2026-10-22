@@ -18,6 +18,12 @@
                         <a href="{{ route('procurements.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Back
                         </a>
+                        <a href="{{ route('procurements.print', $procurement) }}" target="_blank" class="btn btn-outline-dark">
+                            <i class="fas fa-print me-2"></i>Print P.O.
+                        </a>
+                        <a href="{{ route('procurements.pdf', $procurement) }}" target="_blank" class="btn btn-outline-danger">
+                            <i class="fas fa-file-pdf me-2"></i>Download PDF
+                        </a>
                         @if ($procurement->status !== 'received')
                             <a href="{{ route('procurements.edit', $procurement) }}" class="btn btn-outline-primary">
                                 <i class="fas fa-edit me-2"></i>Edit
@@ -60,7 +66,12 @@
                                     </tr>
                                     <tr>
                                         <th>Expected Delivery</th>
-                                        <td>{{ $procurement->expected_delivery_date?->format('Y-m-d') ?? '—' }}</td>
+                                        <td>
+                                            {{ $procurement->expected_delivery_date?->format('Y-m-d') ?? '—' }}
+                                            @if ($procurement->delivery_time)
+                                                <span class="badge bg-light text-dark ms-1">{{ $procurement->delivery_time }}</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                     <tr>
                                         <th>Actual Delivery</th>

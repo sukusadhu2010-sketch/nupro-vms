@@ -139,6 +139,14 @@
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                     @endif
+                                                    <a href="{{ route('procurements.print', $procurement) }}" target="_blank"
+                                                        class="btn btn-outline-dark" title="Print P.O.">
+                                                        <i class="fas fa-print"></i>
+                                                    </a>
+                                                    <a href="{{ route('procurements.pdf', $procurement) }}" target="_blank"
+                                                        class="btn btn-outline-danger" title="Download PDF">
+                                                        <i class="fas fa-file-pdf"></i>
+                                                    </a>
                                                     <form action="{{ route('procurements.destroy', $procurement) }}"
                                                         method="POST" class="d-inline"
                                                         onsubmit="return confirm('Are you sure you want to delete this procurement?');">

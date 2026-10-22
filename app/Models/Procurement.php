@@ -20,6 +20,7 @@ class Procurement extends Model
         'total_amount',
         'order_date',
         'expected_delivery_date',
+        'delivery_time',
         'actual_delivery_date',
         'shipping_address',
         'notes',

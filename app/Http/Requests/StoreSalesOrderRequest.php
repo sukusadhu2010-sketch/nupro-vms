@@ -20,7 +20,7 @@ class StoreSalesOrderRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists('quotations', 'id')->where(function ($query) {
-                    $query->where('status', '!=', 'converted');
+                    $query->where('status', 'accepted');
                 }),
             ],
             'customer_po_number' => ['nullable', 'string', 'max:255'],
@@ -42,7 +42,7 @@ class StoreSalesOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'quotation_id.exists' => 'The selected quotation does not exist or has already been converted.',
+            'quotation_id.exists' => 'The selected quotation does not exist, is not in "Accepted" status, or has already been converted. Only accepted quotations can be converted into a Sales Order.',
             'payment_mode.in' => 'The selected payment mode is invalid. Allowed values: ' . implode(', ', array_keys(SalesOrder::PAYMENT_MODE_LABELS)) . '.',
             'credit_days.required' => 'Number of days is required for LC and Credit payment modes.',
         ];

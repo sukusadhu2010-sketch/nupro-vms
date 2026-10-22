@@ -85,12 +85,62 @@ class ProcurementService
      */
     private function generatePoNumber(SalesOrder $salesOrder, int $vendorId): string
     {
-        $prefix = 'PO';
-        $soPart = str_pad((string) $salesOrder->id, 4, '0', STR_PAD_LEFT);
-        $vendorPart = str_pad((string) $vendorId, 3, '0', STR_PAD_LEFT);
-        $random = strtoupper(substr(uniqid(), -4));
+        $vendor = \App\Models\Vendor::find($vendorId);
 
-        return "{$prefix}-{$soPart}-{$vendorPart}-{$random}";
+        if ($vendor?->vendor_type === 'SUB VENDOR') {
+            return $this->generateRegisterPoNumber('NES/VPO');
+        }
+
+        // Foundry (and default): NES/{financial-year}/{sequence}
+        return $this->generateRegisterPoNumber('NES');
+    }
+
+    /**
+     * Generate a unique PO number in the company register format:
+     * {prefix}/{financial-year}/{sequence}
+     * e.g. NES/VPO/2026-27/0001 (Sub Vendor) or NES/2026-27/0001 (Foundry)
+     */
+    public function generateRegisterPoNumber(string $prefix): string
+    {
+        $now = now();
+        // Indian financial year: April - March. Oct 2026 => 2026-27.
+        $fyStart = $now->month >= 4 ? $now->year : $now->year - 1;
+        $fyEnd = $fyStart + 1;
+        $fy = "{$fyStart}-" . substr((string) $fyEnd, -2);
+
+        $fullPrefix = "{$prefix}/{$fy}/";
+
+        // Highest sequence used this financial year, then take the next
+        $lastSeq = Procurement::where('po_number', 'like', $fullPrefix . '%')
+            ->selectRaw('MAX(CAST(SUBSTRING_INDEX(po_number, "/", -1) AS UNSIGNED)) as max_seq')
+            ->value('max_seq');
+
+        $seq = ((int) $lastSeq) + 1;
+
+        // Guard against races / deleted gaps: loop until a free number is found
+        do {
+            $poNumber = $fullPrefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+            $exists = Procurement::where('po_number', $poNumber)->exists();
+            if ($exists) $seq++;
+        } while ($exists);
+
+        return $poNumber;
+    }
+
+    /**
+     * Sub Vendor register format: NES/VPO/2026-27/0001
+     */
+    public function generateSubVendorPoNumber(): string
+    {
+        return $this->generateRegisterPoNumber('NES/VPO');
+    }
+
+    /**
+     * Foundry register format: NES/2026-27/0001
+     */
+    public function generateFoundryPoNumber(): string
+    {
+        return $this->generateRegisterPoNumber('NES');
     }
 }
 

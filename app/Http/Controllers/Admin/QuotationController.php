@@ -171,12 +171,26 @@ class QuotationController extends Controller
 
     public function edit(Quotation $quotation)
     {
+        if (!in_array($quotation->status, ['draft', 'sent'])) {
+            $statusLabel = ucfirst($quotation->status);
+            return redirect()
+                ->route('quotations.show', $quotation)
+                ->with('error', "This quotation has been {$statusLabel} and can no longer be edited. Only draft or sent quotations can be edited.");
+        }
+
         $quotation->load(['enquiry.customer', 'items.product']);
         return view('admin.quotations.edit', compact('quotation'));
     }
 
     public function update(Request $request, Quotation $quotation)
     {
+        if (!in_array($quotation->status, ['draft', 'sent'])) {
+            $statusLabel = ucfirst($quotation->status);
+            return redirect()
+                ->route('quotations.show', $quotation)
+                ->with('error', "This quotation has been {$statusLabel} and can no longer be revised or modified. Only draft or sent quotations can be edited.");
+        }
+
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -347,6 +361,13 @@ class QuotationController extends Controller
 
     public function revise(Quotation $quotation)
     {
+        if (!in_array($quotation->status, ['draft', 'sent'])) {
+            $statusLabel = ucfirst($quotation->status);
+            return redirect()
+                ->route('quotations.show', $quotation)
+                ->with('error', "This quotation has been {$statusLabel} and can no longer be revised. Only draft or sent quotations can be revised.");
+        }
+
         $quotation->load(['enquiry.items.product', 'items.product']);
         $enquiry = $quotation->enquiry;
 

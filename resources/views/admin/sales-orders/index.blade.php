@@ -256,14 +256,75 @@
         // Loading indicator during filter/apply and exports
         const overlay = document.getElementById('loadingOverlay');
         const showLoading = () => overlay && overlay.classList.remove('d-none');
+        const hideLoading = () => overlay && overlay.classList.add('d-none');
 
         const filtersForm = document.getElementById('filtersForm');
         if (filtersForm) {
             filtersForm.addEventListener('submit', showLoading);
         }
 
+        // Exports are direct file downloads; the page never reloads, so we can't
+        // rely on navigation to clear the overlay. Fetch the file as a blob so we
+        // know exactly when it succeeds, fails or is cancelled.
+        let exportInProgress = false;
+
+        async function startExport(url) {
+            if (exportInProgress) return;
+            exportInProgress = true;
+            showLoading();
+
+            try {
+                const response = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    let message = 'Export failed (HTTP ' + response.status + ').';
+                    try {
+                        const data = await response.json();
+                        if (data && data.message) message = data.message;
+                    } catch (e) { /* not JSON — keep default message */ }
+                    throw new Error(message);
+                }
+
+                const blob = await response.blob();
+
+                // Derive filename from Content-Disposition, fall back per type.
+                let filename = 'export';
+                const disposition = response.headers.get('Content-Disposition') || '';
+                const match = disposition.match(/filename\*?=(?:"([^"]+)"|([^;]+))/);
+                if (match) {
+                    filename = (match[1] || match[2]).trim().replace(/"/g, '');
+                } else {
+                    const type = response.headers.get('Content-Type') || '';
+                    filename = type.includes('pdf') ? 'sales-orders.pdf' : 'sales-orders.xlsx';
+                }
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(link.href);
+            } catch (error) {
+                if (!(error instanceof DOMException && error.name === 'AbortError')) {
+                    console.error('Export failed:', error);
+                    alert(error.message || 'Export failed. Please try again.');
+                }
+                // AbortError = user cancelled — just close the loader quietly.
+            } finally {
+                exportInProgress = false;
+                hideLoading();
+            }
+        }
+
         document.querySelectorAll('a[href*="sales-orders-export"]').forEach(link => {
-            link.addEventListener('click', showLoading);
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                startExport(this.href);
+            });
         });
     });
 </script>

@@ -65,16 +65,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Customer relationship (if user is customer).
+     * Business-entity links (Customer / Vendor) are handled through explicit
+     * mapping tables so that User creation stays fully independent.
+     * These accessors return the linked entity if one exists, else null.
      */
     public function customer()
     {
         return $this->hasOne(Customer::class);
     }
 
-    /**
-     * Vendor relationship (if user is vendor).
-     */
     public function vendor()
     {
         return $this->hasOne(Vendor::class);
@@ -98,10 +97,55 @@ class User extends Authenticatable
 
     /**
      * Check if user has permission.
+     *
+     * Supports legacy string permission ("name" column) as well as the
+     * new module/action pair, e.g. hasPermission('invoices', 'view').
+     * Administrators always pass.
      */
-    public function hasPermission($permission): bool
+    public function hasPermission($permission, ?string $action = null): bool
     {
-        return $this->permissions()->where('name', $permission)->exists();
+        if ($this->hasAnyRole('Administrator', 'admin', 'Super Admin')) {
+            return true;
+        }
+
+        // New style: hasPermission('invoices', 'view')
+        if ($action !== null) {
+            return Permission::where('module', $permission)
+                ->where('action', $action)
+                ->whereHas('roles.users', fn ($q) => $q->where('users.id', $this->id))
+                ->exists();
+        }
+
+        // Legacy style: hasPermission('some-permission-name')
+        return $this->permissions()->where('name', $permission)->exists()
+            || Permission::where('name', $permission)
+                ->whereHas('roles.users', fn ($q) => $q->where('users.id', $this->id))
+                ->exists();
+    }
+
+    /**
+     * All distinct permissions granted through the user's roles,
+     * cached per request for menu rendering.
+     */
+    public function getRolePermissions(): \Illuminate\Support\Collection
+    {
+        static $cache = null;
+
+        if ($cache === null) {
+            $cache = Permission::query()
+                ->whereHas('roles.users', fn ($q) => $q->where('users.id', $this->id))
+                ->get();
+        }
+
+        return $cache;
+    }
+
+    /**
+     * Can the user perform $action on $module?
+     */
+    public function canAccess(string $module, string $action = 'view'): bool
+    {
+        return $this->hasPermission($module, $action);
     }
 }
 

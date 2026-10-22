@@ -75,7 +75,7 @@
                                         @foreach ($vendors as $vendor)
                                             <option value="{{ $vendor->id }}"
                                                 {{ old('vendor_id', $procurement->vendor_id) == $vendor->id ? 'selected' : '' }}>
-                                                {{ $vendor->name }}
+                                                {{ $vendor->particulars }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -103,6 +103,12 @@
                                     <label class="form-label">Expected Delivery Date</label>
                                     <input type="date" name="expected_delivery_date" class="form-control"
                                         value="{{ old('expected_delivery_date', $procurement->expected_delivery_date?->format('Y-m-d')) }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Delivery Time</label>
+                                    <input type="text" name="delivery_time" class="form-control"
+                                        placeholder="e.g. 4:00 PM"
+                                        value="{{ old('delivery_time', $procurement->delivery_time) }}">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Actual Delivery Date</label>

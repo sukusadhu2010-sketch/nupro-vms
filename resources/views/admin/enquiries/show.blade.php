@@ -207,7 +207,7 @@
                                                                         </button>
                                                                     </form>
                                                                 @endif
-                                                                @if ($quote->status != 'accepted')
+                                                                @if (in_array($quote->status, ['draft', 'sent']))
                                                                     <a href="{{ route('quotations.revise', $quote) }}"
                                                                         class="btn btn-outline-warning" title="Revise">
                                                                         <i class="fas fa-code-branch"></i>

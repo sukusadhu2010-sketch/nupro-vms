@@ -63,7 +63,9 @@ public function index()
             ];
         })->toArray();
 
-        return view('admin.procurements.create', compact('vendors', 'products', 'salesOrders', 'salesOrderItemsMap'));
+        return view('admin.procurements.create', compact('vendors', 'products', 'salesOrders', 'salesOrderItemsMap'))
+            ->with('subVendorPoNumber', $this->procurementService->generateSubVendorPoNumber())
+            ->with('foundryPoNumber', $this->procurementService->generateFoundryPoNumber());
     }
 
 /**
@@ -78,6 +80,7 @@ public function index()
             'po_number' => 'required|string|max:255|unique:procurements,po_number',
             'order_date' => 'nullable|date',
             'expected_delivery_date' => 'nullable|date|after_or_equal:order_date',
+            'delivery_time' => 'nullable|string|max:100',
             'shipping_address' => 'nullable|string|max:2000',
             'notes' => 'nullable|string|max:5000',
             'items' => 'required|array|min:1',
@@ -105,14 +108,22 @@ public function index()
             $salesOrderIds = $validated['sales_order_ids'] ?? [];
             $firstSalesOrderId = ! empty($salesOrderIds) ? $salesOrderIds[0] : null;
 
+            // PO numbers always use the company register format:
+            // Sub Vendor => NES/VPO/2026-27/0001, Foundry => NES/2026-27/0001
+            $vendor = Vendor::find($validated['vendor_id']);
+            $poNumber = ($vendor?->vendor_type === 'SUB VENDOR')
+                ? $this->procurementService->generateSubVendorPoNumber()
+                : $this->procurementService->generateFoundryPoNumber();
+
             $procurement = Procurement::create([
                 'sales_order_id' => $firstSalesOrderId,
                 'vendor_id' => $validated['vendor_id'],
-                'po_number' => $validated['po_number'],
+                'po_number' => $poNumber,
                 'status' => 'draft',
                 'total_amount' => $totalAmount,
                 'order_date' => $validated['order_date'] ?? now()->toDateString(),
                 'expected_delivery_date' => $validated['expected_delivery_date'] ?? null,
+                'delivery_time' => $validated['delivery_time'] ?? null,
                 'shipping_address' => $validated['shipping_address'] ?? null,
                 'notes' => $validated['notes'] ?? null,
                 'attachments' => $attachments,
@@ -226,6 +237,7 @@ $validated = $request->validate([
             'sales_order_ids.*' => 'exists:sales_orders,id',
             'status' => 'required|in:draft,sent,partially_received,received,cancelled',
             'expected_delivery_date' => 'nullable|date',
+            'delivery_time' => 'nullable|string|max:100',
             'actual_delivery_date' => 'nullable|date',
             'shipping_address' => 'nullable|string|max:2000',
             'notes' => 'nullable|string|max:5000',
@@ -253,6 +265,7 @@ $procurement->update(array_merge(
             $request->only([
                 'status',
                 'expected_delivery_date',
+                'delivery_time',
                 'actual_delivery_date',
                 'shipping_address',
                 'notes',
@@ -385,6 +398,84 @@ $procurement->update(array_merge(
         return redirect()
             ->back()
             ->with('success', 'Status updated to ' . $procurement->status_label);
+    }
+
+    /**
+     * Browser print preview of the Foundry Purchase Order format.
+     */
+    public function print(Procurement $procurement)
+    {
+        $procurement->load(['vendor', 'salesOrder', 'salesOrders', 'items.product']);
+
+        $view = ($procurement->vendor?->vendor_type === 'SUB VENDOR')
+            ? 'purchase-orders.sub-vendor-print'
+            : 'purchase-orders.print';
+
+        return view($view, [
+            'procurement' => $procurement,
+            'is_html_preview' => true,
+        ]);
+    }
+
+    /**
+     * Download / stream the Foundry Purchase Order as PDF (DOMPDF).
+     */
+    public function pdf(Procurement $procurement)
+    {
+        $procurement->load(['vendor', 'salesOrder', 'salesOrders', 'items.product']);
+
+        $view = ($procurement->vendor?->vendor_type === 'SUB VENDOR')
+            ? 'purchase-orders.sub-vendor-print'
+            : 'purchase-orders.print';
+
+        $options = new \Dompdf\Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'Times New Roman');
+
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml(view($view, ['procurement' => $procurement])->render());
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="PO-' . $procurement->po_number . '.pdf"',
+        ]);
+    }
+
+    /**
+     * Browser print preview of the Sub Vendor Purchase Order format.
+     */
+    public function subVendorPrint(Procurement $procurement)
+    {
+        $procurement->load(['vendor', 'salesOrder.customer', 'salesOrders', 'items.product']);
+
+        return view('purchase-orders.sub-vendor-print', [
+            'procurement' => $procurement,
+            'is_html_preview' => true,
+        ]);
+    }
+
+    /**
+     * Download / stream the Sub Vendor Purchase Order as PDF (DOMPDF).
+     */
+    public function subVendorPdf(Procurement $procurement)
+    {
+        $procurement->load(['vendor', 'salesOrder.customer', 'salesOrders', 'items.product']);
+
+        $options = new \Dompdf\Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'Times New Roman');
+
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml(view('purchase-orders.sub-vendor-print', ['procurement' => $procurement])->render());
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="VPO-' . $procurement->po_number . '.pdf"',
+        ]);
     }
 
     /**

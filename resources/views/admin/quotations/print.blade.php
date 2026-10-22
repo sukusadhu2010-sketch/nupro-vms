@@ -336,7 +336,38 @@
 
 
 
-        @if ($quotation->delivery_terms || $quotation->warranty_terms || $quotation->payment_terms || $quotation->inspection_vendor_scope || $quotation->inspection_third_party_scope)
+        @if ($quotation->payment_term_option || $quotation->payment_terms)
+            <div class="mt-4">
+                <div class="info-label mb-1">Payment Terms</div>
+                <table class="table table-sm table-borderless small mb-0">
+                    <tr>
+                        <td>
+                            <table class="table table-sm table-bordered mb-1" style="font-size:12px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:24px;"></th>
+                                        <th style="width:160px;">Mode</th>
+                                        <th>Terms</th>
+                                    </tr>
+                                </thead>
+                                @foreach (['LC / Credit' => 'lc_credit', 'Advance + PI' => 'advance_pi', 'PDC' => 'pdc', 'Proforma Invoice' => 'proforma_invoice'] as $label => $key)
+                                    <tr>
+                                        <td style="width:24px;">{{ $quotation->payment_term_option === $key ? '' : '' }}</td>
+                                        <td>{{ $label }}</td>
+                                        <td>{{ ($quotation->payment_term_text[$key] ?? '') ?: '-' }}</td>
+                                    </tr>
+                                @endforeach
+                            </table>
+                            @if ($quotation->payment_terms)
+                                {!! nl2br(e($quotation->payment_terms)) !!}
+                            @endif
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        @endif
+
+        @if ($quotation->delivery_terms || $quotation->warranty_terms || $quotation->inspection_vendor_scope || $quotation->inspection_third_party_scope)
             <div class="mt-4">
                 <div class="info-label mb-1">Terms &amp; Conditions</div>
                 <table class="table table-sm table-borderless small mb-0">
@@ -353,25 +384,6 @@
                                 {{ $quotation->prices_basis }}
                                 @if ($quotation->prices_basis_option)
                                      <em>{{ $quotation->prices_basis_option === 'ex-works' ? 'Ex-Works' : 'Transported Godown' }}</em>
-                                @endif
-                            </td>
-                        </tr>
-                    @endif
-                    @if ($quotation->payment_term_option || $quotation->payment_terms)
-                        <tr>
-                            <td><strong>Payment Terms</strong></td>
-                            <td>
-                                <table class="table table-sm table-borderless mb-1" style="font-size:12px;">
-                                    @foreach (['LC / Credit' => 'lc_credit', 'Advance + PI' => 'advance_pi', 'PDC' => 'pdc', 'Proforma Invoice' => 'proforma_invoice'] as $label => $key)
-                                        <tr>
-                                            <td style="width:24px;">{{ $quotation->payment_term_option === $key ? '' : '' }}</td>
-                                            <td style="width:160px;">{{ $label }}</td>
-                                            <td>{{ ($quotation->payment_term_text[$key] ?? '') ?: '-' }}</td>
-                                        </tr>
-                                    @endforeach
-                                </table>
-                                @if ($quotation->payment_terms)
-                                    {!! nl2br(e($quotation->payment_terms)) !!}
                                 @endif
                             </td>
                         </tr>
