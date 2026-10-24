@@ -45,7 +45,7 @@ class PermissionService
 
     /**
      * Does a user have a specific module.action permission?
-     * Administrators (a role named exactly 'Administrator') always pass.
+     * Administrators (Administrator, admin, super admin) always pass.
      */
     public static function userCan(User $user, string $module, string $action): bool
     {
@@ -53,11 +53,28 @@ class PermissionService
 
         return Cache::remember($key, now()->addMinutes(10), function () use ($user, $module, $action) {
             foreach ($user->roles as $role) {
-                if ($role->name === 'Administrator' || $role->hasPermission($module, $action)) {
+                $roleName = strtolower($role->name);
+                if (in_array($roleName, ['admin', 'administrator', 'super admin', 'super-admin'], true) || $role->hasPermission($module, $action)) {
                     return true;
                 }
             }
             return false;
         });
+    }
+
+    /**
+     * Clear cached permissions for a user or entirely.
+     */
+    public static function clearCache(?User $user = null): void
+    {
+        if ($user) {
+            foreach (array_keys(PermissionRegistry::MODULES) as $module) {
+                foreach (PermissionRegistry::ACTIONS as $action) {
+                    Cache::forget("rbac.{$user->id}.{$module}.{$action}");
+                }
+            }
+        } else {
+            Cache::flush();
+        }
     }
 }

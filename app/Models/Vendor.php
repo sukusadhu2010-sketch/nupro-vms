@@ -20,5 +20,15 @@ class Vendor extends Model
     {
         return $this->belongsTo(User::class)->withTrashed();
     }
+
+    public function procurements()
+    {
+        return $this->hasMany(Procurement::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
 }
 

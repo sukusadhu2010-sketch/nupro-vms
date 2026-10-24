@@ -8,8 +8,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends Model
 {
-    public const DIRECTION_RECEIVED = 'received';
-    public const DIRECTION_PAID = 'paid';
+    public const DIRECTION_RECEIPT = 'receipt';
+    public const DIRECTION_PAYMENT = 'payment';
+    public const DIRECTION_RECEIVED = 'receipt';
+    public const DIRECTION_PAID = 'payment';
+
+    public const MODES = [
+        'cash' => 'Cash',
+        'bank_transfer' => 'Bank Transfer',
+        'cheque' => 'Cheque',
+        'neft' => 'NEFT',
+        'rtgs' => 'RTGS',
+        'upi' => 'UPI',
+    ];
 
     protected $fillable = [
         'payment_number',
@@ -77,8 +88,43 @@ class Payment extends Model
 
     public function getPartyNameAttribute(): string
     {
-        return $this->direction === self::DIRECTION_RECEIVED
+        return ($this->direction === self::DIRECTION_RECEIPT || $this->direction === 'received')
             ? ($this->customer?->name ?? '-')
             : ($this->vendor?->name ?? '-');
+    }
+
+    public function isReceipt(): bool
+    {
+        return $this->direction === self::DIRECTION_RECEIPT || $this->direction === 'received';
+    }
+
+    public function isPayment(): bool
+    {
+        return $this->direction === self::DIRECTION_PAYMENT || $this->direction === 'paid';
+    }
+
+    /**
+     * Generate next payment/receipt number, e.g. RCPT/2026-27/00001 or PYMT/2026-27/00001
+     */
+    public static function generatePaymentNumber(string $direction = self::DIRECTION_RECEIPT): string
+    {
+        $fy = FinancialYear::active();
+        $fyLabel = $fy ? $fy->fy_label : (date('Y') . '-' . substr((string)(date('Y') + 1), -2));
+
+        $prefix = ($direction === self::DIRECTION_RECEIPT || $direction === 'received') ? 'RCPT' : 'PYMT';
+        $prefixPattern = "{$prefix}/{$fyLabel}/";
+
+        $last = static::where('payment_number', 'like', "{$prefixPattern}%")
+            ->orderByDesc('id')
+            ->first();
+
+        $seq = 1;
+        if ($last) {
+            $parts = explode('/', $last->payment_number);
+            $lastSeq = (int) end($parts);
+            $seq = $lastSeq + 1;
+        }
+
+        return sprintf('%s/%s/%05d', $prefix, $fyLabel, $seq);
     }
 }

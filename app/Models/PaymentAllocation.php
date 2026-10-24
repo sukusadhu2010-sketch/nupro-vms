@@ -10,12 +10,23 @@ class PaymentAllocation extends Model
     protected $fillable = [
         'payment_id',
         'invoice_id',
+        'allocated_amount',
         'amount',
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
+        'allocated_amount' => 'decimal:2',
     ];
+
+    public function getAmountAttribute()
+    {
+        return $this->allocated_amount;
+    }
+
+    public function setAmountAttribute($value): void
+    {
+        $this->attributes['allocated_amount'] = $value;
+    }
 
     public function payment(): BelongsTo
     {

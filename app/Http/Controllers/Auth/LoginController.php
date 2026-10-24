@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +34,7 @@ class LoginController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            AuditLog::record('login', 'auth', "User {$user->email} logged in successfully");
             
             return redirect()->intended('/dashboard');
         }
@@ -47,6 +49,9 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
+        if (Auth::check()) {
+            AuditLog::record('logout', 'auth', "User " . Auth::user()->email . " logged out");
+        }
         Auth::logout();
 
         $request->session()->invalidate();

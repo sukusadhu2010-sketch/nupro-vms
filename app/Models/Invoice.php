@@ -57,6 +57,11 @@ class Invoice extends Model
         'paid_amount' => 'decimal:2',
     ];
 
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);
@@ -118,23 +123,67 @@ class Invoice extends Model
     /**
      * Recalculate header totals from items.
      */
-    public function recalcTotals(): void
+    public function recalcTotals(bool $isInterstate = false): void
     {
         $items = $this->items()->get();
 
-        $subTotal = $items->sum(fn ($i) => (float) $i->quantity * (float) $i->rate);
-        $discount = $items->sum(fn ($i) => (float) $i->discount_amount);
-        $taxable = $subTotal - $discount;
-        // tax_percent on each item is the combined rate; split CGST/SGST 50/50
-        $tax = $items->sum(fn ($i) => (float) $i->tax_amount);
+        $subTotal = (float) $items->sum(fn ($i) => (float) $i->quantity * (float) $i->rate);
+        $discount = (float) $items->sum(fn ($i) => (float) $i->discount_amount);
+        $taxable = max(0, $subTotal - $discount);
+        $totalTax = (float) $items->sum(fn ($i) => (float) $i->tax_amount);
+
+        // Check if customer state differs from organization setting
+        $org = OrganizationSetting::current();
+        if ($this->customer && $this->customer->state && $org->state) {
+            $isInterstate = strcasecmp(trim($this->customer->state), trim($org->state)) !== 0;
+        }
+
+        $cgst = $isInterstate ? 0.00 : round($totalTax / 2, 2);
+        $sgst = $isInterstate ? 0.00 : round($totalTax / 2, 2);
+        $igst = $isInterstate ? round($totalTax, 2) : 0.00;
+
+        $computedTotal = $taxable + $cgst + $sgst + $igst + (float) $this->cess + (float) $this->tcs + (float) $this->shipping_charge;
+        $rounded = round($computedTotal);
+        $roundOff = round($rounded - $computedTotal, 2);
 
         $this->update([
             'sub_total' => $subTotal,
             'discount_amount' => $discount,
             'taxable_amount' => $taxable,
-            'cgst' => $tax / 2,
-            'sgst' => $tax / 2,
-            'grand_total' => round($taxable + $tax + (float) $this->cess + (float) $this->tcs + (float) $this->shipping_charge, 2),
+            'cgst' => $cgst,
+            'sgst' => $sgst,
+            'igst' => $igst,
+            'round_off' => $roundOff,
+            'grand_total' => $rounded,
         ]);
+    }
+
+    /**
+     * Generate next invoice number, e.g. INV/2026-27/00001
+     */
+    public static function generateInvoiceNumber(?string $type = 'tax'): string
+    {
+        $fy = FinancialYear::active();
+        $fyLabel = $fy ? $fy->fy_label : (date('Y') . '-' . substr((string)(date('Y') + 1), -2));
+
+        $prefix = match ($type) {
+            'proforma' => 'PI',
+            'commercial' => 'CI',
+            default => 'INV',
+        };
+
+        $prefixPattern = "{$prefix}/{$fyLabel}/";
+        $lastInvoice = static::where('invoice_number', 'like', "{$prefixPattern}%")
+            ->orderByDesc('id')
+            ->first();
+
+        $seq = 1;
+        if ($lastInvoice) {
+            $parts = explode('/', $lastInvoice->invoice_number);
+            $lastSeq = (int) end($parts);
+            $seq = $lastSeq + 1;
+        }
+
+        return sprintf('%s/%s/%05d', $prefix, $fyLabel, $seq);
     }
 }

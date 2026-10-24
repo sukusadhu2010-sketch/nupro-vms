@@ -76,20 +76,21 @@
                                         <label class="form-label fw-bold mb-3">Role & Permissions</label>
                                         <div class="row g-3">
                                             <div class="col-12">
-                                                <label for="role_id" class="form-label fw-semibold">User Role <span
+                                                <label for="role_ids" class="form-label fw-semibold">User Role(s) <span
                                                         class="text-danger">*</span></label>
                                                 <select
-                                                    class="form-select form-select-lg @error('role_id') is-invalid @enderror"
-                                                    id="role_id" name="role_id" required>
-                                                    <option value="">Select Role</option>
+                                                    class="form-select form-select-lg select2 @error('role_ids') is-invalid @enderror"
+                                                    id="role_ids" name="role_ids[]" multiple required>
+                                                    @php $currentRoleIds = old('role_ids', $user->roles->pluck('id')->all()); @endphp
                                                     @foreach ($roles as $role)
                                                         <option value="{{ $role->id }}"
-                                                            {{ old('role_id', $user->roles->first()?->id) == $role->id ? 'selected' : '' }}>
+                                                            {{ in_array($role->id, $currentRoleIds) ? 'selected' : '' }}>
                                                             {{ ucfirst($role->name) }}
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                @error('role_id')
+                                                <div class="form-text text-muted small">You can assign multiple roles to a user.</div>
+                                                @error('role_ids')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>

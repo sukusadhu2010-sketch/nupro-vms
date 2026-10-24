@@ -24,6 +24,11 @@
                                 <i class="fas fa-edit me-2"></i>Edit
                             </a>
                         @endif
+                        @if (auth()->user()?->canAccess('invoices.create'))
+                            <a href="{{ route('invoices.create', ['sales_order_id' => $salesOrder->id]) }}" class="btn btn-success">
+                                <i class="fas fa-file-invoice me-2"></i>Generate Invoice
+                            </a>
+                        @endif
                         @if (in_array($salesOrder->status, ['confirmed', 'processing']))
                             <form action="{{ route('sales-orders.procure', $salesOrder) }}" method="POST" class="d-inline"
                                 onsubmit="return confirm('Generate vendor-wise procurement orders from this sales order?');">

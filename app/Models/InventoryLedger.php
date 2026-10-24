@@ -52,16 +52,6 @@ class InventoryLedger extends Model
         return $this->belongsTo(Procurement::class, 'purchase_order_id');
     }
 
-    public function warehouse(): BelongsTo
-    {
-        return $this->belongsTo(Warehouse::class);
-    }
-
-    public function source(): MorphTo
-    {
-        return $this->morphTo();
-    }
-
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -78,5 +68,38 @@ class InventoryLedger extends Model
             $q->where('warehouse_id', $warehouseId);
         }
         return (float) $q->sum('qty_in') - (float) $q->sum('qty_out');
+    }
+
+    /**
+     * Record an inventory movement atomically, compute running balance,
+     * enforce negative stock protection, and keep stock_balances in sync.
+     */
+    public static function recordMovement(array $data, bool $allowNegative = false): self
+    {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($data, $allowNegative) {
+            $productId = $data['product_id'];
+            $warehouseId = $data['warehouse_id'] ?? null;
+            $qtyIn = (float) ($data['qty_in'] ?? 0);
+            $qtyOut = (float) ($data['qty_out'] ?? 0);
+
+            $currentBalance = static::nextBalance($productId, $warehouseId);
+            $newBalance = $currentBalance + $qtyIn - $qtyOut;
+
+            if ($newBalance < 0 && !$allowNegative && ($data['transaction_type'] ?? '') !== 'adjustment') {
+                throw new \InvalidArgumentException("Insufficient stock! Available balance is {$currentBalance}, but attempted to deduct {$qtyOut}.");
+            }
+
+            $data['balance_qty'] = $newBalance;
+            $data['created_by'] = $data['created_by'] ?? auth()->id();
+
+            $ledger = static::create($data);
+
+            \Illuminate\Support\Facades\DB::table('stock_balances')->updateOrInsert(
+                ['product_id' => $productId, 'warehouse_id' => $warehouseId],
+                ['quantity' => $newBalance, 'updated_at' => now(), 'created_at' => now()]
+            );
+
+            return $ledger;
+        });
     }
 }

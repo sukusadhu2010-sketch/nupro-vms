@@ -26,6 +26,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // Protected dashboard routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard/export-vendors', [DashboardController::class, 'exportVendors'])->name('dashboard.export-vendors');
 });
 
 // Enquiry Routes (Admin accessible)
@@ -145,5 +146,71 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('sd-pbg-register', [\App\Http\Controllers\Admin\SdPbgRegisterController::class, 'index'])->name('sd-pbg.index');
     Route::get('sd-pbg-register/export/excel', [\App\Http\Controllers\Admin\SdPbgRegisterController::class, 'exportExcel'])->name('sd-pbg.export.excel');
+});
+
+// Audit Log Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
+});
+
+// Invoice Management Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('invoices/fetch-sales-order/{salesOrder}', [\App\Http\Controllers\Admin\InvoiceController::class, 'fetchSalesOrder'])->name('invoices.fetch-sales-order');
+    Route::post('invoices/{invoice}/approve', [\App\Http\Controllers\Admin\InvoiceController::class, 'approve'])->name('invoices.approve');
+    Route::post('invoices/{invoice}/cancel', [\App\Http\Controllers\Admin\InvoiceController::class, 'cancel'])->name('invoices.cancel');
+    Route::get('invoices/{invoice}/print', [\App\Http\Controllers\Admin\InvoiceController::class, 'print'])->name('invoices.print');
+    Route::resource('invoices', \App\Http\Controllers\Admin\InvoiceController::class);
+});
+
+// Payment Management Routes
+Route::middleware(['auth'])->group(function () {
+    // Accounts Dashboard
+    Route::get('accounts/dashboard', [\App\Http\Controllers\Admin\AccountsDashboardController::class, 'index'])->name('accounts.dashboard');
+
+    // Customer Receipts
+    Route::get('receipts/fetch-customer-invoices/{customer}', [\App\Http\Controllers\Admin\CustomerReceiptController::class, 'fetchCustomerInvoices'])->name('receipts.fetch-customer-invoices');
+    Route::get('receipts/{receipt}/print', [\App\Http\Controllers\Admin\CustomerReceiptController::class, 'print'])->name('receipts.print');
+    Route::resource('receipts', \App\Http\Controllers\Admin\CustomerReceiptController::class);
+
+    // Vendor Payments
+    Route::get('vendor-payments/fetch-vendor-orders/{vendor}', [\App\Http\Controllers\Admin\VendorPaymentController::class, 'fetchVendorOrders'])->name('vendor-payments.fetch-vendor-orders');
+    Route::get('vendor-payments/{vendorPayment}/print', [\App\Http\Controllers\Admin\VendorPaymentController::class, 'print'])->name('vendor-payments.print');
+    Route::resource('vendor-payments', \App\Http\Controllers\Admin\VendorPaymentController::class);
+});
+
+// Inventory Ledger Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('inventory', [\App\Http\Controllers\Admin\InventoryLedgerController::class, 'index'])->name('inventory.index');
+    Route::get('inventory/create', [\App\Http\Controllers\Admin\InventoryLedgerController::class, 'create'])->name('inventory.create');
+    Route::get('inventory/po-tracking', [\App\Http\Controllers\Admin\InventoryLedgerController::class, 'poTracking'])->name('inventory.po-tracking');
+    Route::get('inventory/export/excel', [\App\Http\Controllers\Admin\InventoryLedgerController::class, 'exportExcel'])->name('inventory.export.excel');
+    Route::get('inventory/print', [\App\Http\Controllers\Admin\InventoryLedgerController::class, 'print'])->name('inventory.print');
+    Route::resource('inventory-ledger', \App\Http\Controllers\Admin\InventoryLedgerController::class)->parameters(['inventory-ledger' => 'inventoryLedger']);
+});
+
+// Reports Routes
+Route::middleware(['auth'])->group(function () {
+    // RBAC Reports
+    Route::get('reports/rbac/role-users', [\App\Http\Controllers\Admin\RbacReportController::class, 'roleUsers'])->name('reports.rbac.role-users');
+    Route::get('reports/rbac/permission-matrix', [\App\Http\Controllers\Admin\RbacReportController::class, 'permissionMatrix'])->name('reports.rbac.permission-matrix');
+    Route::get('reports/rbac/user-access', [\App\Http\Controllers\Admin\RbacReportController::class, 'userAccess'])->name('reports.rbac.user-access');
+
+    // Invoice Reports
+    Route::get('reports/invoices/register', [\App\Http\Controllers\Admin\InvoiceReportController::class, 'invoiceRegister'])->name('reports.invoices.register');
+    Route::get('reports/invoices/outstanding', [\App\Http\Controllers\Admin\InvoiceReportController::class, 'outstandingReport'])->name('reports.invoices.outstanding');
+    Route::get('reports/invoices/tax-summary', [\App\Http\Controllers\Admin\InvoiceReportController::class, 'taxSummary'])->name('reports.invoices.tax-summary');
+    Route::get('reports/invoices/customer-ledger', [\App\Http\Controllers\Admin\InvoiceReportController::class, 'customerLedger'])->name('reports.invoices.customer-ledger');
+
+    // Payment Reports
+    Route::get('reports/payments/receipts-register', [\App\Http\Controllers\Admin\PaymentReportController::class, 'receiptsRegister'])->name('reports.payments.receipts-register');
+    Route::get('reports/payments/vendor-payment-register', [\App\Http\Controllers\Admin\PaymentReportController::class, 'vendorPaymentRegister'])->name('reports.payments.vendor-payment-register');
+    Route::get('reports/payments/aging', [\App\Http\Controllers\Admin\PaymentReportController::class, 'agingReport'])->name('reports.payments.aging');
+    Route::get('reports/payments/summary', [\App\Http\Controllers\Admin\PaymentReportController::class, 'summaryReport'])->name('reports.payments.summary');
+
+    // Inventory Reports
+    Route::get('reports/inventory/ledger', [\App\Http\Controllers\Admin\InventoryReportController::class, 'inventoryLedger'])->name('reports.inventory.ledger');
+    Route::get('reports/inventory/stock-movement', [\App\Http\Controllers\Admin\InventoryReportController::class, 'stockMovement'])->name('reports.inventory.stock-movement');
+    Route::get('reports/inventory/po-report', [\App\Http\Controllers\Admin\InventoryReportController::class, 'poInventoryReport'])->name('reports.inventory.po-report');
+    Route::get('reports/inventory/item-ledger', [\App\Http\Controllers\Admin\InventoryReportController::class, 'itemLedgerReport'])->name('reports.inventory.item-ledger');
 });
 

@@ -108,19 +108,13 @@ class User extends Authenticatable
             return true;
         }
 
-        // New style: hasPermission('invoices', 'view')
-        if ($action !== null) {
-            return Permission::where('module', $permission)
-                ->where('action', $action)
-                ->whereHas('roles.users', fn ($q) => $q->where('users.id', $this->id))
-                ->exists();
+        if ($action === null && str_contains($permission, '.')) {
+            [$permission, $action] = explode('.', $permission, 2);
+        } elseif ($action === null) {
+            $action = 'view';
         }
 
-        // Legacy style: hasPermission('some-permission-name')
-        return $this->permissions()->where('name', $permission)->exists()
-            || Permission::where('name', $permission)
-                ->whereHas('roles.users', fn ($q) => $q->where('users.id', $this->id))
-                ->exists();
+        return \App\Services\PermissionService::userCan($this, $permission, $action);
     }
 
     /**

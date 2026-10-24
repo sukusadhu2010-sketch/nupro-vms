@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\AuditLog;
+use App\Services\PermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
@@ -54,7 +56,9 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed',
-            'role_id' => 'required|exists:roles,id',
+            'role_ids' => 'nullable|array',
+            'role_ids.*' => 'exists:roles,id',
+            'role_id' => 'nullable|exists:roles,id',
         ]);
 
         $user = User::create([
@@ -63,7 +67,11 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->roles()->attach($request->role_id);
+        $roleIds = $request->input('role_ids', $request->filled('role_id') ? [$request->role_id] : []);
+        $user->roles()->sync($roleIds);
+
+        AuditLog::record('user_created', 'users', "Created user {$user->name} ({$user->email}) and assigned roles");
+        PermissionService::clearCache($user);
 
         // NOTE: User creation is independent. Customer / Foundry / Sub Vendor
         // records are only created from their own modules and linked via
@@ -99,7 +107,9 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user)],
             'password' => 'nullable|min:8|confirmed',
-            'role_id' => 'required|exists:roles,id',
+            'role_ids' => 'nullable|array',
+            'role_ids.*' => 'exists:roles,id',
+            'role_id' => 'nullable|exists:roles,id',
         ]);
 
         $updateData = [
@@ -112,7 +122,12 @@ class UserController extends Controller
         }
 
         $user->update($updateData);
-        $user->roles()->sync([$request->role_id]);
+
+        $roleIds = $request->input('role_ids', $request->filled('role_id') ? [$request->role_id] : []);
+        $user->roles()->sync($roleIds);
+
+        AuditLog::record('role_assigned', 'users', "Updated user {$user->name} ({$user->email}) and synced roles");
+        PermissionService::clearCache($user);
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully!');

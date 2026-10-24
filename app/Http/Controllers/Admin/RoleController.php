@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Validation\Rule;
+use App\Models\AuditLog;
 
 class RoleController extends Controller
 {
@@ -78,6 +80,8 @@ class RoleController extends Controller
             ]);
 
             $this->syncPermissions($role, $request->input('permissions', []));
+            AuditLog::record(isset($role->wasRecentlyCreated) && $role->wasRecentlyCreated ? 'role_created' : 'permission_changed', 'roles', "Saved role and synced permissions for: {$role->name}");
+            PermissionService::clearCache();
         });
 
         return redirect()->route('roles.index')->with('success', 'Role "' . $validated['name'] . '" created successfully.');
@@ -109,6 +113,8 @@ class RoleController extends Controller
             ]);
 
             $this->syncPermissions($role, $request->input('permissions', []));
+            AuditLog::record(isset($role->wasRecentlyCreated) && $role->wasRecentlyCreated ? 'role_created' : 'permission_changed', 'roles', "Saved role and synced permissions for: {$role->name}");
+            PermissionService::clearCache();
         });
 
         return redirect()->route('roles.index')->with('success', 'Role "' . $role->name . '" updated successfully.');
@@ -120,6 +126,8 @@ class RoleController extends Controller
     public function toggleStatus(Role $role)
     {
         $role->update(['is_active' => !$role->is_active]);
+        AuditLog::record('role_status_changed', 'roles', "Toggled status of role {$role->name} to " . ($role->is_active ? 'active' : 'inactive'));
+        PermissionService::clearCache();
         return response()->json(['status' => true, 'is_active' => $role->is_active]);
     }
 
@@ -131,7 +139,10 @@ class RoleController extends Controller
         if ($role->users()->count() > 0) {
             return response()->json(['status' => false, 'message' => 'Cannot delete: role is assigned to users.'], 422);
         }
+        $name = $role->name;
         $role->delete();
+        AuditLog::record('role_deleted', 'roles', "Deleted role: {$name}");
+        PermissionService::clearCache();
         return response()->json(['status' => true, 'message' => 'Role deleted.']);
     }
 
@@ -172,6 +183,7 @@ class RoleController extends Controller
                 $m => [
                     'label' => str_replace('-', ' ', ucfirst($m)),
                     'actions' => Permission::where('module', $m)->distinct()->orderBy('action')->pluck('action')->all(),
+                    'ids' => Permission::where('module', $m)->pluck('id', 'action')->all(),
                 ],
             ])
             ->all();

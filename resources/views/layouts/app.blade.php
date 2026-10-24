@@ -25,6 +25,8 @@
     <style>
         .flex-grow {
             flex-grow: 1;
+            min-width: 0;
+            width: 100%;
         }
         .dark table tbody{
             color: var(--text-primary, #e5e7eb);
@@ -91,110 +93,153 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar bg-light border-end vh-100 ps ps-show-scrollbar d-none d-lg-block" id="sidebar"
-            style="width: 300px;">
+            style="width: 300px; overflow-y: auto;">
             <div class="p-3">
                 @php($org = \App\Models\OrganizationSetting::current())
+                @php($u = auth()->user())
                 <div class="text-center mb-3">
                     @if ($org->logo_path)
-                        <img src="{{ asset('storage/' . $org->logo_path) }}" alt="{{ $org->name }}" style="max-height: 60px; max-width: 180px;">
+                        <img src="{{ asset('storage/' . $org->logo_path) }}" alt="{{ $org->name }}" style="max-height: 55px; max-width: 180px;">
                     @else
                         <span class="fw-bold text-primary">{{ $org->name }}</span>
                     @endif
                 </div>
-                <ul class="nav flex-column">
+                <ul class="nav flex-column pb-5">
+                    <!-- Dashboard -->
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                             href="{{ route('dashboard') }}">
-                            <i class="fas fa-tachometer-alt me-2"></i><span class="sidebar-text">Dashboard</span>
+                            <i class="fas fa-tachometer-alt me-2 text-primary"></i><span class="sidebar-text">Dashboard</span>
                         </a>
                     </li>
+
+                    {{-- SALES & CRM --}}
+                    @if ($u?->canAccess('enquiries') || $u?->canAccess('quotations') || $u?->canAccess('sales-orders') || $u?->canAccess('customers') || $u?->canAccess('invoices'))
+                    <li class="nav-header text-uppercase text-muted fw-bold px-3 pt-3 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Sales & CRM</li>
+                    @if ($u?->canAccess('customers'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}"
+                            href="{{ route('customers.index') }}">
+                            <i class="fas fa-user-tie me-2"></i><span class="sidebar-text">Customers</span>
+                        </a>
+                    </li>
+                    @endif
+                    @if ($u?->canAccess('enquiries'))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('enquiries.*') ? 'active' : '' }}"
                             href="{{ route('enquiries.index') }}">
                             <i class="fas fa-file-invoice me-2"></i><span class="sidebar-text">Enquiries</span>
                         </a>
                     </li>
+                    @endif
+                    @if ($u?->canAccess('quotations'))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('quotations.*') ? 'active' : '' }}"
                             href="{{ route('quotations.index') }}">
                             <i class="fas fa-file-invoice-dollar me-2"></i><span class="sidebar-text">Quotations</span>
                         </a>
                     </li>
-                    <!-- <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('quotation-forms.*') ? 'active' : '' }}"
-                            href="{{ route('quotation-forms.index') }}">
-                            <i class="fas fa-file-signature me-2"></i><span class="sidebar-text">Quotation Forms</span>
-                        </a>
-                    </li> -->
+                    @endif
+                    @if ($u?->canAccess('sales-orders'))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('sales-orders.*') ? 'active' : '' }}"
                             href="{{ route('sales-orders.index') }}">
                             <i class="fas fa-shopping-cart me-2"></i><span class="sidebar-text">Sales Orders</span>
                         </a>
                     </li>
+                    @endif
+                    @if ($u?->canAccess('invoices'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}"
+                            href="{{ route('invoices.index') }}">
+                            <i class="fas fa-file-invoice-dollar me-2"></i><span class="sidebar-text">Sales Invoices</span>
+                        </a>
+                    </li>
+                    @endif
+                    @endif
+
+                    {{-- PURCHASE & VENDORS --}}
+                    @if ($u?->canAccess('procurements') || $u?->canAccess('vendors'))
+                    <li class="nav-header text-uppercase text-muted fw-bold px-3 pt-3 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Purchase & Vendors</li>
+                    @if ($u?->canAccess('procurements'))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('procurements.*') ? 'active' : '' }}"
                             href="{{ route('procurements.index') }}">
-                            <i class="fas fa-file-invoice me-2"></i><span class="sidebar-text">Procurements</span>
+                            <i class="fas fa-file-invoice me-2"></i><span class="sidebar-text">Purchase Orders</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('sd-pbg.*') ? 'active' : '' }}"
-                            href="{{ route('sd-pbg.index') }}">
-                            <i class="fas fa-file-contract me-2"></i><span class="sidebar-text">SD/PBG Register</span>
-                        </a>
-                    </li>
-                    <li class="nav-item my-2 border-top border-secondary"></li>
+                    @endif
+                    @if ($u?->canAccess('vendors'))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('foundry-vendors.*') ? 'active' : '' }}"
                             href="{{ route('foundry-vendors.index') }}">
-                            <i class="fas fa-industry me-2"></i><span class="sidebar-text">Foundry Management</span>
+                            <i class="fas fa-industry me-2"></i><span class="sidebar-text">Foundry Vendors</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('sub-vendors.*') ? 'active' : '' }}"
                             href="{{ route('sub-vendors.index') }}">
-                            <i class="fas fa-sitemap me-2"></i><span class="sidebar-text">Sub Vendor Management</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
-                            href="{{ route('users.index') }}">
-                            <i class="fas fa-users me-2"></i><span class="sidebar-text">Users</span>
-                        </a>
-                    </li>
-                    @if (auth()->user()?->canAccess('roles') || auth()->user()?->hasRole('admin'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}"
-                            href="{{ route('roles.index') }}">
-                            <i class="fas fa-user-shield me-2"></i><span class="sidebar-text">Roles</span>
+                            <i class="fas fa-sitemap me-2"></i><span class="sidebar-text">Sub Vendors</span>
                         </a>
                     </li>
                     @endif
-                    @if (auth()->user()?->canAccess('roles') || auth()->user()?->hasRole('admin'))
+                    @endif
+
+                    {{-- ACCOUNTS & FINANCE --}}
+                    @if ($u?->canAccess('invoices') || $u?->canAccess('receipts') || $u?->canAccess('vendor-payments'))
+                    <li class="nav-header text-uppercase text-muted fw-bold px-3 pt-3 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Accounts & Finance</li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}"
-                            href="{{ route('permissions.index') }}">
-                            <i class="fas fa-key me-2"></i><span class="sidebar-text">Permissions</span>
+                        <a class="nav-link {{ request()->routeIs('accounts.dashboard') ? 'active' : '' }}"
+                            href="{{ route('accounts.dashboard') }}">
+                            <i class="fas fa-chart-line me-2 text-primary"></i><span class="sidebar-text">Accounts Dashboard</span>
+                        </a>
+                    </li>
+                    @if ($u?->canAccess('receipts'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('receipts.*') ? 'active' : '' }}"
+                            href="{{ route('receipts.index') }}">
+                            <i class="fas fa-hand-holding-usd me-2 text-success"></i><span class="sidebar-text">Customer Receipts</span>
                         </a>
                     </li>
                     @endif
+                    @if ($u?->canAccess('vendor-payments'))
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}"
-                            href="{{ route('customers.index') }}">
-                            <i class="fas fa-user-tie me-2"></i><span class="sidebar-text">Customers</span>
+                        <a class="nav-link {{ request()->routeIs('vendor-payments.*') ? 'active' : '' }}"
+                            href="{{ route('vendor-payments.index') }}">
+                            <i class="fas fa-money-check-alt me-2 text-danger"></i><span class="sidebar-text">Vendor Payments</span>
+                        </a>
+                    </li>
+                    @endif
+                    @endif
+
+                    {{-- INVENTORY & STORES --}}
+                    @if ($u?->canAccess('inventory-ledger') || $u?->canAccess('products'))
+                    <li class="nav-header text-uppercase text-muted fw-bold px-3 pt-3 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Inventory & Stores</li>
+                    @if ($u?->canAccess('inventory-ledger'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('inventory-ledger.*') ? 'active' : '' }}"
+                            href="{{ route('inventory-ledger.index') }}">
+                            <i class="fas fa-boxes me-2"></i><span class="sidebar-text">Inventory Ledger</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}"
+                        <a class="nav-link {{ request()->routeIs('inventory.po-tracking') ? 'active' : '' }}"
+                            href="{{ route('inventory.po-tracking') }}">
+                            <i class="fas fa-chart-pie me-2"></i><span class="sidebar-text">PO Consumption Tracking</span>
+                        </a>
+                    </li>
+                    @endif
+                    @if ($u?->canAccess('products'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}"
                             href="{{ route('products.index') }}">
-                            <i class="fas fa-boxes me-2"></i><span class="sidebar-text">Products</span>
+                            <i class="fas fa-box-open me-2"></i><span class="sidebar-text">Products</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.products.*') || request()->routeIs('product-categories.*') ? 'active' : '' }}"
+                        <a class="nav-link {{ request()->routeIs('product-categories.*') ? 'active' : '' }}"
                             href="{{ route('product-categories.index') }}">
-                            <i class="fas fa-sitemap me-2"></i><span class="sidebar-text">Product Categories</span>
+                            <i class="fas fa-tags me-2"></i><span class="sidebar-text">Product Categories</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -203,6 +248,125 @@
                             <i class="fas fa-ruler-combined me-2"></i><span class="sidebar-text">Units</span>
                         </a>
                     </li>
+                    @endif
+                    @endif
+
+                    {{-- REPORTS CENTER --}}
+                    <li class="nav-header text-uppercase text-muted fw-bold px-3 pt-3 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Reports Center</li>
+                    @if ($u?->canAccess('roles') || $u?->canAccess('users'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('reports.rbac.*') ? 'active' : '' }}"
+                            data-bs-toggle="collapse" href="#rbacReportsCollapse" role="button">
+                            <i class="fas fa-user-lock me-2 text-warning"></i><span class="sidebar-text">RBAC Reports</span>
+                            <i class="fas fa-chevron-down ms-auto small"></i>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('reports.rbac.*') ? 'show' : '' }}" id="rbacReportsCollapse">
+                            <ul class="nav flex-column ps-3">
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.rbac.role-users') }}">&bull; Role Wise Users</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.rbac.permission-matrix') }}">&bull; Permission Matrix</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.rbac.user-access') }}">&bull; User Access Report</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    @endif
+
+                    @if ($u?->canAccess('invoices'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('reports.invoices.*') ? 'active' : '' }}"
+                            data-bs-toggle="collapse" href="#invoiceReportsCollapse" role="button">
+                            <i class="fas fa-file-invoice-dollar me-2 text-primary"></i><span class="sidebar-text">Invoice Reports</span>
+                            <i class="fas fa-chevron-down ms-auto small"></i>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('reports.invoices.*') ? 'show' : '' }}" id="invoiceReportsCollapse">
+                            <ul class="nav flex-column ps-3">
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.invoices.register') }}">&bull; Invoice Register</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.invoices.outstanding') }}">&bull; Outstanding Report</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.invoices.tax-summary') }}">&bull; Tax Summary</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.invoices.customer-ledger') }}">&bull; Customer Ledger</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    @endif
+
+                    @if ($u?->canAccess('receipts') || $u?->canAccess('vendor-payments'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('reports.payments.*') ? 'active' : '' }}"
+                            data-bs-toggle="collapse" href="#paymentReportsCollapse" role="button">
+                            <i class="fas fa-receipt me-2 text-success"></i><span class="sidebar-text">Payment Reports</span>
+                            <i class="fas fa-chevron-down ms-auto small"></i>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('reports.payments.*') ? 'show' : '' }}" id="paymentReportsCollapse">
+                            <ul class="nav flex-column ps-3">
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.payments.receipts-register') }}">&bull; Receipts Register</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.payments.vendor-payment-register') }}">&bull; Vendor Payments</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.payments.aging') }}">&bull; Aging Analysis</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.payments.summary') }}">&bull; Receivables & Payables</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    @endif
+
+                    @if ($u?->canAccess('inventory-ledger'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('reports.inventory.*') ? 'active' : '' }}"
+                            data-bs-toggle="collapse" href="#inventoryReportsCollapse" role="button">
+                            <i class="fas fa-warehouse me-2 text-info"></i><span class="sidebar-text">Inventory Reports</span>
+                            <i class="fas fa-chevron-down ms-auto small"></i>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('reports.inventory.*') ? 'show' : '' }}" id="inventoryReportsCollapse">
+                            <ul class="nav flex-column ps-3">
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.inventory.ledger') }}">&bull; Inventory Ledger</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.inventory.stock-movement') }}">&bull; Stock Movement</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.inventory.po-report') }}">&bull; PO Inventory Report</a></li>
+                                <li class="nav-item"><a class="nav-link py-1 small" href="{{ route('reports.inventory.item-ledger') }}">&bull; Item Ledger</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    @endif
+
+                    @if ($u?->canAccess('sd-pbg'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('sd-pbg.*') ? 'active' : '' }}"
+                            href="{{ route('sd-pbg.index') }}">
+                            <i class="fas fa-file-contract me-2"></i><span class="sidebar-text">SD/PBG Register</span>
+                        </a>
+                    </li>
+                    @endif
+
+                    {{-- ADMINISTRATION --}}
+                    @if ($u?->canAccess('users') || $u?->canAccess('roles') || $u?->canAccess('audit-logs'))
+                    <li class="nav-header text-uppercase text-muted fw-bold px-3 pt-3 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Administration</li>
+                    @if ($u?->canAccess('users'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
+                            href="{{ route('users.index') }}">
+                            <i class="fas fa-users me-2"></i><span class="sidebar-text">Users</span>
+                        </a>
+                    </li>
+                    @endif
+                    @if ($u?->canAccess('roles'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}"
+                            href="{{ route('roles.index') }}">
+                            <i class="fas fa-user-shield me-2"></i><span class="sidebar-text">User Role Master</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}"
+                            href="{{ route('permissions.index') }}">
+                            <i class="fas fa-key me-2"></i><span class="sidebar-text">Permissions Master</span>
+                        </a>
+                    </li>
+                    @endif
+                    @if ($u?->canAccess('audit-logs') || $u?->canAccess('roles'))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}"
+                            href="{{ route('audit-logs.index') }}">
+                            <i class="fas fa-history me-2 text-primary"></i><span class="sidebar-text">Audit Log</span>
+                        </a>
+                    </li>
+                    @endif
+                    @if ($u?->canAccess('roles'))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('financial-years.*') ? 'active' : '' }}"
                             href="{{ route('financial-years.index') }}">
@@ -215,6 +379,10 @@
                             <i class="fas fa-building me-2"></i><span class="sidebar-text">Organization Settings</span>
                         </a>
                     </li>
+                    @endif
+                    @endif
+
+                    <li class="nav-item my-3 border-top"></li>
                     <li class="nav-item mt-auto">
                         <a class="nav-link text-danger" href="{{ route('logout') }}"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -224,7 +392,6 @@
                 </ul>
             </div>
         </div>
-
 
         <!-- Page Content -->
         <main class="flex-grow p-3">

@@ -29,6 +29,16 @@
                                 <i class="fas fa-edit me-2"></i>Edit
                             </a>
                         @endif
+                        @if (auth()->user()?->canAccess('inventory-ledger.create') || auth()->user()?->canAccess('inventory.create'))
+                            <a href="{{ route('inventory-ledger.create', ['purchase_order_id' => $procurement->id, 'transaction_type' => 'grn']) }}" class="btn btn-outline-success">
+                                <i class="fas fa-boxes me-2"></i>Record GRN
+                            </a>
+                        @endif
+                        @if (auth()->user()?->canAccess('vendor-payments.create') || auth()->user()?->canAccess('vendor_payments.create'))
+                            <a href="{{ route('vendor-payments.create', ['purchase_order_id' => $procurement->id, 'vendor_id' => $procurement->vendor_id]) }}" class="btn btn-outline-warning">
+                                <i class="fas fa-money-bill-wave me-2"></i>Record Payment
+                            </a>
+                        @endif
                     </div>
                 </div>
 
